@@ -1,0 +1,13 @@
+{
+  "itemGroup.simplegreenhouses": "Example Mod Tab",
+  "block.simplegreenhouses.example_block": "Example Block",
+  "item.simplegreenhouses.example_item": "Example Item",
+
+  "simplegreenhouses.configuration.title": "Simple Greenhouses Configs",
+  "simplegreenhouses.configuration.section.simplegreenhouses.common.toml": "Simple Greenhouses Configs",
+  "simplegreenhouses.configuration.section.simplegreenhouses.common.toml.title": "Simple Greenhouses Configs",
+  "simplegreenhouses.configuration.items": "Item List",
+  "simplegreenhouses.configuration.logDirtBlock": "Log Dirt Block",
+  "simplegreenhouses.configuration.magicNumberIntroduction": "Magic Number Text",
+  "simplegreenhouses.configuration.magicNumber": "Magic Number"
+}
