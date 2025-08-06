@@ -11,7 +11,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,51 +19,44 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.common.util.TriState;
 
-public class RichSoilBlock extends Block {
+public class GhGlassBlock extends Block {
 
+    public static final IntegerProperty Y = IntegerProperty.create("y", 0, 10);
     public static final IntegerProperty X = IntegerProperty.create("x", 0, 10);
     public static final BooleanProperty IS_NEG_X = BooleanProperty.create("is_neg_x");
     public static final IntegerProperty Z = IntegerProperty.create("z", 0, 10);
     public static final BooleanProperty IS_NEG_Z = BooleanProperty.create("is_neg_z");
 
-
-    public RichSoilBlock(BlockBehaviour.Properties properties) {
+    public GhGlassBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }
 
     @Override
-    public MapCodec<RichSoilBlock> codec() {
-        return SimpleGreenhouses.RICH_SOIL_CODEC.value();
+    public MapCodec<GhGlassBlock> codec() {
+        return SimpleGreenhouses.GH_GLASS_CODEC.value();
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
         // this is where the properties are actually added to the state
-        pBuilder.add(X, IS_NEG_X, Z, IS_NEG_Z);
+        pBuilder.add(Y, X, IS_NEG_X, Z, IS_NEG_Z);
     }
 
-    //can sustain any plant (for now)
+    // On use :
     @Override
-    public TriState canSustainPlant(BlockState state, BlockGetter level, BlockPos soilPosition, Direction facing, BlockState plant) {
-        return TriState.TRUE;
-    }
-    //And is always fertile
-    @Override
-    public boolean isFertile(BlockState state, BlockGetter level, BlockPos pos) {
-        return true;
-    }
-    //On use :
-    @Override
-	public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit)
-	{
-        if (player instanceof ServerPlayer serverPlayer)
-        {
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+            BlockHitResult hit) {
+        if (player instanceof ServerPlayer serverPlayer) {
             int x = state.getValue(IS_NEG_X) ? -state.getValue(X) : state.getValue(X);
             int z = state.getValue(IS_NEG_Z) ? -state.getValue(Z) : state.getValue(Z);
-            
-            BlockPos controller_pos = new BlockPos(pos.getX() + x, pos.getY(), pos.getZ() + z);
+            int y = state.getValue(Y);
+
+            BlockPos controller_pos = new BlockPos(pos.getX() + x, pos.getY() - y, pos.getZ() + z);
             SimpleGreenhouses.LOGGER.info("Trying to get controller at pos {} from {}", controller_pos, pos);
             BlockEntity controller_entity = level.getBlockEntity(controller_pos);
             if (controller_entity instanceof GhControllerBlockEntity ghbe) {
@@ -73,21 +66,38 @@ public class RichSoilBlock extends Block {
                 }
             }
         }
-			 
         return super.useWithoutItem(state, level, pos, player, hit);
-	}
+    }
 
-    //disassemble multiblock on destroy
+    // disassemble multiblock on destroy
     @Override
     public void destroy(LevelAccessor level, BlockPos pos, BlockState state) {
         int x = state.getValue(IS_NEG_X) ? -state.getValue(X) : state.getValue(X);
         int z = state.getValue(IS_NEG_Z) ? -state.getValue(Z) : state.getValue(Z);
-        
-        BlockPos controller_pos = new BlockPos(pos.getX() + x, pos.getY(), pos.getZ() + z);
+        int y = state.getValue(Y);
+
+        BlockPos controller_pos = new BlockPos(pos.getX() + x, pos.getY() - y, pos.getZ() + z);
         SimpleGreenhouses.LOGGER.info("Trying to get controller at pos {} from {}", controller_pos, pos);
         BlockEntity controller_entity = level.getBlockEntity(controller_pos);
         if (controller_entity instanceof GhControllerBlockEntity ghbe) {
             ghbe.assembled = false;
         }
+    }
+
+    // make it transparent
+    @Override
+    protected VoxelShape getVisualShape(BlockState p_309057_, BlockGetter p_308936_, BlockPos p_308956_,
+            CollisionContext p_309006_) {
+        return Shapes.empty();
+    }
+
+    @Override
+    protected float getShadeBrightness(BlockState p_308911_, BlockGetter p_308952_, BlockPos p_308918_) {
+        return 1.0F;
+    }
+
+    @Override
+    protected boolean propagatesSkylightDown(BlockState p_309084_, BlockGetter p_309133_, BlockPos p_309097_) {
+        return true;
     }
 }

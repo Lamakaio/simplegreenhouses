@@ -1,5 +1,6 @@
 package com.koala.simplegreenhouses;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 import net.minecraft.core.BlockPos;
@@ -20,7 +21,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class GreenhouseMenu extends AbstractContainerMenu {
-	public static final String TITLE = "container.jumbofurnace.jumbo_furnace";
+	public static final String TITLE = "container.simplegreenhouses.greenhouse_controller";
 
 	// slot positions
 	public static final int SLOT_SPACING = 18;
@@ -60,7 +61,9 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 	 **/
 	private final ContainerLevelAccess usabilityTest;
 	private final ContainerData furnaceData;
-	private final Optional<GhControllerBlockEntity> serverFurnace;
+	private final Optional<GhControllerBlockEntity> serverController;
+
+	public final static HashMap<String, Object> guistate = new HashMap<>();
 
 	/** Container factory for opening the container clientside **/
 	public static GreenhouseMenu getClientMenu(int id, Inventory playerInventory) {
@@ -82,20 +85,20 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 	public static MenuProvider getServerMenuProvider(GhControllerBlockEntity te, BlockPos activationPos) {
 		return new SimpleMenuProvider(
 				(id, playerInventory, serverPlayer) -> new GreenhouseMenu(id, playerInventory, activationPos, te.input,
-						te.output, new GhSyncData(te),
+						te.output, te.dataSlot,
 						Optional.of(te)),
 				Component.translatable(TITLE));
 	}
 
 	protected GreenhouseMenu(int id, Inventory playerInventory, BlockPos pos, IItemHandler inputs,
 			IItemHandler outputs, ContainerData furnaceData,
-			Optional<GhControllerBlockEntity> serverFurnace) {
+			Optional<GhControllerBlockEntity> serverController) {
 		super(SimpleGreenhouses.GH_MENU.get(), id);
 
 		Player player = playerInventory.player;
 		this.usabilityTest = ContainerLevelAccess.create(player.level(), pos);
 		this.furnaceData = furnaceData;
-		this.serverFurnace = serverFurnace;
+		this.serverController = serverController;
 
 		this.addSlot(new SlotItemHandler(inputs, 0, INPUT_SLOT_X, INPUT_SLOT_Y));
 		
@@ -129,7 +132,7 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 
 	@Override
 	public boolean stillValid(Player player) {
-		return stillValid(this.usabilityTest, player, SimpleGreenhouses.GH_CONTROLLER_BLOCK.get());
+		return true;
 	}
 
 	@Override
@@ -152,7 +155,7 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 			else {
 				// otherwise, try to put it in the input slots
 				if (this.moveItemStackTo(stackInSlot, FIRST_INPUT_SLOT, END_INPUT_SLOTS, false)) {
-					this.serverFurnace.ifPresent(GhControllerBlockEntity::markInputInventoryChanged);
+					this.serverController.ifPresent(GhControllerBlockEntity::markInputInventoryChanged);
 				} else {
 					return ItemStack.EMPTY;
 				}
@@ -183,8 +186,11 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 		return this.furnaceData.get(1);
 	}
 
-	public int getCurrentRecipeCount() {
+	public void setAssembled(int assembled) {
+		this.furnaceData.set(2, assembled);
+	}
 
+	public int getAssembled() {
 		return this.furnaceData.get(2);
 	}
 

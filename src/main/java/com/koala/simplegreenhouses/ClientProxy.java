@@ -13,5 +13,6 @@ public class ClientProxy
 	private static void onRegisterMenuScreens(RegisterMenuScreensEvent event)
 	{
 		event.register(SimpleGreenhouses.GH_MENU.get(), GreenhouseScreen::new);
+		event.register(SimpleGreenhouses.GH_UNASSEMBLED_MENU.get(), GreenhouseUnassembledScreen::new);
 	}
 }

@@ -9,6 +9,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -20,12 +21,16 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockBehaviour.StatePredicate;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -36,6 +41,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.client.model.IModelBuilder.Simple;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
@@ -69,6 +75,11 @@ public class SimpleGreenhouses {
                                         "rich_soil",
                                         () -> BlockBehaviour.simpleCodec(RichSoilBlock::new));
 
+        public static final DeferredHolder<MapCodec<? extends Block>, MapCodec<GhGlassBlock>> GH_GLASS_CODEC = BLOCK_TYPES
+                        .register(
+                                        "greenhouse_glass",
+                                        () -> BlockBehaviour.simpleCodec(GhGlassBlock::new));
+
         public static final DeferredHolder<MapCodec<? extends Block>, MapCodec<GhControllerBlock>> GH_CONTROLLER_CODEC = BLOCK_TYPES
                         .register(
                                         "greenhouse_controller_codec",
@@ -84,6 +95,22 @@ public class SimpleGreenhouses {
                         "rich_soil",
                         RICH_SOIL_BLOCK);
 
+        public static boolean never(BlockState state, BlockGetter blockGetter, BlockPos pos) {
+                return false;
+        }
+
+        public static final DeferredBlock<GhGlassBlock> GH_GLASS_BLOCK = BLOCKS.register("greenhouse_glass",
+                        () -> new GhGlassBlock(BlockBehaviour.Properties.of()
+                                        .destroyTime(0.5f)
+                                        .explosionResistance(1.0f)
+                                        .sound(SoundType.GLASS)
+                                        .noOcclusion().isValidSpawn(Blocks::never)
+                                        .isViewBlocking(SimpleGreenhouses::never)
+                                        .isSuffocating(SimpleGreenhouses::never)));
+        public static final DeferredItem<BlockItem> GH_GLASS_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(
+                        "greenhouse_glass",
+                        GH_GLASS_BLOCK);
+
         public static final DeferredBlock<GhControllerBlock> GH_CONTROLLER_BLOCK = BLOCKS.register(
                         "greenhouse_controller",
                         () -> new GhControllerBlock(BlockBehaviour.Properties.of()
@@ -97,19 +124,13 @@ public class SimpleGreenhouses {
         // Creative tab
         public static final DeferredHolder<CreativeModeTab, CreativeModeTab> SGH_TAB = CREATIVE_MODE_TABS
                         .register("simple_greenhouses", () -> CreativeModeTab.builder()
-                                        .title(Component.translatable("itemGroup.simplegreenhouses")) // The language
-                                                                                                      // key for the
-                                                                                                      // title of
-                                                                                                      // your
-                                                                                                      // CreativeModeTab
+                                        .title(Component.translatable("itemGroup.simplegreenhouses"))
                                         .withTabsBefore(CreativeModeTabs.COMBAT)
                                         .icon(() -> GH_CONTROLLER_BLOCK_ITEM.get().getDefaultInstance())
                                         .displayItems((parameters, output) -> {
-                                                output.accept(GH_CONTROLLER_BLOCK_ITEM.get()); // Add the example item
-                                                                                               // to the tab. For your
-                                                                                               // own
-                                                output.accept(RICH_SOIL_BLOCK_ITEM.get()); // Add the example item to
-                                                                                           // the tab. For your own
+                                                output.accept(GH_CONTROLLER_BLOCK_ITEM.get());
+                                                output.accept(RICH_SOIL_BLOCK_ITEM.get());
+                                                output.accept(GH_GLASS_BLOCK_ITEM.get());
                                         }).build());
 
         // Block entities
@@ -134,12 +155,18 @@ public class SimpleGreenhouses {
         public static final DeferredHolder<MenuType<?>, MenuType<GreenhouseMenu>> GH_MENU = MENUS.register(
                         "greenhouse_menu",
                         () -> new MenuType<>(GreenhouseMenu::getClientMenu, FeatureFlags.VANILLA_SET));
+        
+        public static final DeferredHolder<MenuType<?>, MenuType<GreenhouseUnassembledMenu>> GH_UNASSEMBLED_MENU = MENUS.register(
+                        "greenhouse_unassembled_menu",
+                        () -> new MenuType<>(GreenhouseUnassembledMenu::getClientMenu, FeatureFlags.VANILLA_SET));
+
 
         // The constructor for the mod class is the first code that is run when your mod
         // is loaded.
         // FML will recognize some parameter types like IEventBus or ModContainer and
         // pass them in automatically.
         public SimpleGreenhouses(IEventBus modEventBus, ModContainer modContainer) {
+
                 // Register the commonSetup method for modloading
                 modEventBus.addListener(this::commonSetup);
 

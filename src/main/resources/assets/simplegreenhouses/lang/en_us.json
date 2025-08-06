@@ -1,5 +1,5 @@
 {
-  "itemGroup.simplegreenhouses": "Example Mod Tab",
+  "itemGroup.simplegreenhouses": "Simple Greenhouses",
   "block.simplegreenhouses.example_block": "Example Block",
   "item.simplegreenhouses.example_item": "Example Item",
 
@@ -9,5 +9,18 @@
   "simplegreenhouses.configuration.items": "Item List",
   "simplegreenhouses.configuration.logDirtBlock": "Log Dirt Block",
   "simplegreenhouses.configuration.magicNumberIntroduction": "Magic Number Text",
-  "simplegreenhouses.configuration.magicNumber": "Magic Number"
+  "simplegreenhouses.configuration.magicNumber": "Magic Number",
+
+  "block.simplegreenhouses.rich_soil": "Rich soil", 
+  "item.simplegreenhouses.rich_soil": "Rich soil",
+  "block.simplegreenhouses.greenhouse_glass": "Greenhouse glass", 
+  "item.simplegreenhouses.greenhouse_glass": "Greenhouse glass", 
+
+  "block.simplegreenhouses.greenhouse_controller": "Greenhouse Controller", 
+  "item.simplegreenhouses.greenhouse_controller": "Greenhouse Controller",
+
+  "simplegreenhouses.containers.greenhouse_controller": "Greenhouse Controller", 
+  "gui.simplegreenhouses.gh_controller_unassembled.button_assemble_greenhouse": "Assemble Greenhouse", 
+  "gui.simplegreenhouses.gh_controller_unassembled.label_empty": ""
+
 }

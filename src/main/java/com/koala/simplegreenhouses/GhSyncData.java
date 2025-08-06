@@ -21,7 +21,7 @@ public class GhSyncData implements ContainerData
 			case 1:
 				return te.maxProgress;
 			case 2:
-				return 0;
+				return te.assembled ? 1 : 0;
 			default:
 				return 0;
 		}
@@ -30,7 +30,7 @@ public class GhSyncData implements ContainerData
 	@Override
 	public void set(int index, int value)
 	{
-		// noop, this is the serverside data and set is only called clientside
+	//noop
 	}
 
 	@Override

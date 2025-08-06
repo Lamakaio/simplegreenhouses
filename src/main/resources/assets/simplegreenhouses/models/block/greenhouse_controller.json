@@ -1,0 +1,13 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "simplegreenhouses:block/gh_controller_bottom",
+    "up": "simplegreenhouses:block/gh_controller_top",
+    "north": "simplegreenhouses:block/gh_controller_side",
+    "east": "simplegreenhouses:block/gh_controller_side",
+    "south": "simplegreenhouses:block/gh_controller_side",
+    "west": "simplegreenhouses:block/gh_controller_side",
+    "particle": "simplegreenhouses:block/gh_controller_side"
+  },
+  "render_type": "solid"
+}

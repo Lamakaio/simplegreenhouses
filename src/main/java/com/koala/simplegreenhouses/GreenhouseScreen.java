@@ -1,9 +1,16 @@
 package com.koala.simplegreenhouses;
 
+import java.util.HashMap;
+
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.Checkbox.OnValueChange;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -15,6 +22,10 @@ public class GreenhouseScreen extends AbstractContainerScreen<GreenhouseMenu> {
 	private static final ResourceLocation PROGRESS_SPRITE = ResourceLocation
 			.withDefaultNamespace("container/furnace/burn_progress");
 	private static final ResourceLocation PROGRESS_SPRITE_EMPTY = SimpleGreenhouses.id("arrow");
+
+	private final static HashMap<String, Object> guistate = GreenhouseMenu.guistate;
+
+	ImageButton imagebutton_cross;
 
 	// progress bar stuff
 	public static final int BURN_METER_FROM_X = 176;
@@ -63,14 +74,14 @@ public class GreenhouseScreen extends AbstractContainerScreen<GreenhouseMenu> {
 		// render meter
 		int cookMeterPixels = this.getCookMeterPixels(partialTicks);
 		if (cookMeterPixels < METER_WIDTH) {
-			graphics.blitSprite(PROGRESS_SPRITE_EMPTY, METER_WIDTH, METER_HEIGHT, cookMeterPixels, 0, xStart + METER_TO_X + cookMeterPixels,
+			graphics.blitSprite(PROGRESS_SPRITE_EMPTY, METER_WIDTH, METER_HEIGHT, cookMeterPixels, 0,
+					xStart + METER_TO_X + cookMeterPixels,
 					yStart + METER_TO_Y, METER_WIDTH - cookMeterPixels, METER_HEIGHT);
 		}
 		if (cookMeterPixels > 0) {
 			graphics.blitSprite(PROGRESS_SPRITE, METER_WIDTH, METER_HEIGHT, 0, 0, xStart + METER_TO_X,
 					yStart + METER_TO_Y, cookMeterPixels, METER_HEIGHT);
 		}
-		
 
 		// int cookProgress = (this.menu).getCookProgressionScaled() + 1;
 		// graphics.blit(GUI_TEXTURE, xStart + COOK_METER_TO_X, yStart +
@@ -84,7 +95,24 @@ public class GreenhouseScreen extends AbstractContainerScreen<GreenhouseMenu> {
 	private int getCookMeterPixels(float partialTicks) {
 		if (this.menu.getMaxProgressValue() <= 0) {
 			return 0;
-		} 
+		}
 		return (METER_WIDTH * this.menu.getProgress()) / this.menu.getMaxProgressValue();
+	}
+
+	@Override
+	public void init() {
+		super.init();
+
+		imagebutton_cross = new ImageButton(this.leftPos + 47, this.topPos + 67, 16, 16, new WidgetSprites(ResourceLocation.parse("idk:textures/screens/cross.png"), ResourceLocation.parse("idk:textures/screens/cross_select.png")), e -> {
+			this.menu.setAssembled(0);
+		}) {
+			@Override
+			public void renderWidget(GuiGraphics guiGraphics, int x, int y, float partialTicks) {
+				guiGraphics.blit(sprites.get(isActive(), isHoveredOrFocused()), getX(), getY(), 0, 0, width, height, width, height);
+			}
+		};
+
+		guistate.put("button:imagebutton_cross", imagebutton_cross);
+		this.addRenderableWidget(imagebutton_cross);
 	}
 }

@@ -1,0 +1,13 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "simplegreenhouses:block/rich_dirt",
+    "up": "simplegreenhouses:block/rich_farmland",
+    "north": "simplegreenhouses:block/rich_dirt",
+    "east": "simplegreenhouses:block/rich_dirt",
+    "south": "simplegreenhouses:block/rich_dirt",
+    "west": "simplegreenhouses:block/rich_dirt",
+    "particle": "simplegreenhouses:block/rich_dirt"
+  },
+  "render_type": "solid"
+}
