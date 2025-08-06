@@ -88,8 +88,8 @@ public class GreenhouseScreen extends AbstractContainerScreen<GreenhouseMenu> {
 		// COOK_METER_TO_Y, COOK_METER_FROM_X, COOK_METER_FROM_Y, cookProgress,
 		// COOK_METER_HEIGHT);
 		// debug recipes to make sure we're doing it right
-		graphics.drawString(Minecraft.getInstance().font, Component.literal("beep boop"), xStart + METER_TO_X + 10,
-				yStart + METER_TO_Y + 20, 0x373737, false);
+		// graphics.drawString(Minecraft.getInstance().font, Component.literal("beep boop"), xStart + METER_TO_X + 10,
+		// 		yStart + METER_TO_Y + 20, 0x373737, false);
 	}
 
 	private int getCookMeterPixels(float partialTicks) {
@@ -103,16 +103,16 @@ public class GreenhouseScreen extends AbstractContainerScreen<GreenhouseMenu> {
 	public void init() {
 		super.init();
 
-		imagebutton_cross = new ImageButton(this.leftPos + 47, this.topPos + 67, 16, 16, new WidgetSprites(ResourceLocation.parse("idk:textures/screens/cross.png"), ResourceLocation.parse("idk:textures/screens/cross_select.png")), e -> {
-			this.menu.setAssembled(0);
-		}) {
-			@Override
-			public void renderWidget(GuiGraphics guiGraphics, int x, int y, float partialTicks) {
-				guiGraphics.blit(sprites.get(isActive(), isHoveredOrFocused()), getX(), getY(), 0, 0, width, height, width, height);
-			}
-		};
+		// imagebutton_cross = new ImageButton(this.leftPos + 47, this.topPos + 67, 16, 16, new WidgetSprites(ResourceLocation.parse("idk:textures/screens/cross.png"), ResourceLocation.parse("idk:textures/screens/cross_select.png")), e -> {
+		// 	this.menu.setAssembled(0);
+		// }) {
+		// 	@Override
+		// 	public void renderWidget(GuiGraphics guiGraphics, int x, int y, float partialTicks) {
+		// 		guiGraphics.blit(sprites.get(isActive(), isHoveredOrFocused()), getX(), getY(), 0, 0, width, height, width, height);
+		// 	}
+		// };
 
-		guistate.put("button:imagebutton_cross", imagebutton_cross);
-		this.addRenderableWidget(imagebutton_cross);
+		// guistate.put("button:imagebutton_cross", imagebutton_cross);
+		// this.addRenderableWidget(imagebutton_cross);
 	}
 }

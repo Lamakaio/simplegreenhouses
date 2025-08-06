@@ -155,11 +155,6 @@ public class SimpleGreenhouses {
         public static final DeferredHolder<MenuType<?>, MenuType<GreenhouseMenu>> GH_MENU = MENUS.register(
                         "greenhouse_menu",
                         () -> new MenuType<>(GreenhouseMenu::getClientMenu, FeatureFlags.VANILLA_SET));
-        
-        public static final DeferredHolder<MenuType<?>, MenuType<GreenhouseUnassembledMenu>> GH_UNASSEMBLED_MENU = MENUS.register(
-                        "greenhouse_unassembled_menu",
-                        () -> new MenuType<>(GreenhouseUnassembledMenu::getClientMenu, FeatureFlags.VANILLA_SET));
-
 
         // The constructor for the mod class is the first code that is run when your mod
         // is loaded.

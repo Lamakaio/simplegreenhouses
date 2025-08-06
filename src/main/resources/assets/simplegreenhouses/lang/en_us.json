@@ -19,7 +19,7 @@
   "block.simplegreenhouses.greenhouse_controller": "Greenhouse Controller", 
   "item.simplegreenhouses.greenhouse_controller": "Greenhouse Controller",
 
-  "simplegreenhouses.containers.greenhouse_controller": "Greenhouse Controller", 
+  "containers.greenhouse_controller": "Greenhouse Controller", 
   "gui.simplegreenhouses.gh_controller_unassembled.button_assemble_greenhouse": "Assemble Greenhouse", 
   "gui.simplegreenhouses.gh_controller_unassembled.label_empty": ""
 
