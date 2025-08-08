@@ -54,9 +54,13 @@ public class GhControllerBlock extends Block implements EntityBlock {
         IFluidHandlerItem cap = stack.getCapability(Capabilities.FluidHandler.ITEM);
         BlockEntity be = level.getBlockEntity(pos);
         if (cap != null && be instanceof GhControllerBlockEntity ghbe) {
+            if (player instanceof ServerPlayer) {
             if (FluidUtil.interactWithFluidHandler(player, hand, ghbe.fluidHandler)) {
-                return ItemInteractionResult.sidedSuccess(level.isClientSide());
-            };
+                return ItemInteractionResult.CONSUME;
+            }}
+            else {
+                return ItemInteractionResult.SUCCESS; 
+            }
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }

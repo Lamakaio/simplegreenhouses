@@ -1,6 +1,5 @@
 package com.koala.simplegreenhouses;
 
-import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -25,7 +24,5 @@ public class SimpleGreenhousesClient {
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         // Some client setup code
-        SimpleGreenhouses.LOGGER.info("HELLO FROM CLIENT SETUP");
-        SimpleGreenhouses.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
     }
 }

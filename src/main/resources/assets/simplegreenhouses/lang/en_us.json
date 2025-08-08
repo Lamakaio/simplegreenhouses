@@ -1,25 +1,27 @@
 {
   "itemGroup.simplegreenhouses": "Simple Greenhouses",
-  "block.simplegreenhouses.example_block": "Example Block",
-  "item.simplegreenhouses.example_item": "Example Item",
 
-  "simplegreenhouses.configuration.title": "Simple Greenhouses Configs",
-  "simplegreenhouses.configuration.section.simplegreenhouses.common.toml": "Simple Greenhouses Configs",
-  "simplegreenhouses.configuration.section.simplegreenhouses.common.toml.title": "Simple Greenhouses Configs",
-  "simplegreenhouses.configuration.items": "Item List",
-  "simplegreenhouses.configuration.logDirtBlock": "Log Dirt Block",
-  "simplegreenhouses.configuration.magicNumberIntroduction": "Magic Number Text",
-  "simplegreenhouses.configuration.magicNumber": "Magic Number",
+  "simplegreenhouses.configuration.title": "Simple Greenhouses Config",
+  "simplegreenhouses.configuration.section.simplegreenhouses.common.toml": "Simple Greenhouses Config",
+  "simplegreenhouses.configuration.section.simplegreenhouses.common.toml.title": "Simple Greenhouses Config",
+  "simplegreenhouses.configuration.speedMultiplier": "Speed multiplier",
+  "simplegreenhouses.configuration.waterPenalty": "Speed penalty without water",
+  "simplegreenhouses.configuration.fertilizerBonus": "Speed bonus with fertilizer",
+  "simplegreenhouses.configuration.waterUsageMultiplier": "Water usage multiplier",
+  "simplegreenhouses.configuration.greenhouseWidth": "Maximum greenhouse width",
+  "simplegreenhouses.configuration.greenhouseHeight": "Maximum greenhouse height",
+  "simplegreenhouses.configuration.tagsWhitelist": "Tags whitelist",
+  "simplegreenhouses.configuration.blockBlacklist": "Blocks blacklist",
 
-  "block.simplegreenhouses.rich_soil": "Rich soil", 
-  "item.simplegreenhouses.rich_soil": "Rich soil",
-  "block.simplegreenhouses.greenhouse_glass": "Greenhouse glass", 
-  "item.simplegreenhouses.greenhouse_glass": "Greenhouse glass", 
+  "block.simplegreenhouses.rich_soil": "Rich Soil", 
+  "item.simplegreenhouses.rich_soil": "Rich Soil",
+  "block.simplegreenhouses.greenhouse_glass": "Greenhouse Glass", 
+  "item.simplegreenhouses.greenhouse_glass": "Greenhouse Glass", 
 
   "block.simplegreenhouses.greenhouse_controller": "Greenhouse Controller", 
   "item.simplegreenhouses.greenhouse_controller": "Greenhouse Controller",
 
-  "containers.greenhouse_controller": "Greenhouse Controller", 
+  "container.simplegreenhouses.greenhouse_controller": "Greenhouse Controller", 
   "gui.simplegreenhouses.gh_controller_unassembled.button_assemble_greenhouse": "Assemble Greenhouse", 
   "gui.simplegreenhouses.gh_controller_unassembled.label_empty": ""
 

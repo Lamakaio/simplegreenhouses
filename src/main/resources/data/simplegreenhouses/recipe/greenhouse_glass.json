@@ -1,0 +1,18 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "A": {"tag": "c:glass_blocks/tinted"},
+        "B": {"item": "minecraft:iron_bars"},
+        "C": {"item": "minecraft:glowstone_dust"}
+    },
+    "pattern": [
+        "AC ",
+        "BA ",
+        "   "
+    ],
+    "result": {
+        "count": 2,
+        "id": "simplegreenhouses:greenhouse_glass"
+    }
+}

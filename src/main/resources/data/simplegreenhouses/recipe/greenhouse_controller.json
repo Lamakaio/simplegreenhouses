@@ -1,0 +1,20 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "A": {"item": "minecraft:bell"},
+        "B": {"item": "minecraft:water_bucket"},
+        "C": {"item": "minecraft:oxidized_copper"},
+        "D": {"item": "minecraft:wind_charge"},
+        "E": {"item": "minecraft:chain"}
+    },
+    "pattern": [
+        "DDD",
+        "BCB",
+        "EAE"
+    ],
+    "result": {
+        "count": 1,
+        "id": "simplegreenhouses:greenhouse_controller"
+    }
+}

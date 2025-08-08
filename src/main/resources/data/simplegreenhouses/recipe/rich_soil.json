@@ -1,0 +1,14 @@
+{
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+        {"tag": "minecraft:dirt"},
+        {"item": "minecraft:rotten_flesh"},
+        {"tag": "minecraft:leaves"},
+        {"tag": "c:bones"}
+    ],
+    "result": {
+        "count": 1,
+        "id": "simplegreenhouses:rich_soil"
+    }
+}

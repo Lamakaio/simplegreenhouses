@@ -9,28 +9,52 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 // An example config class. This is not required, but it's a good idea to have one to keep your config organized.
 // Demonstrates how to use Neo's config APIs
 public class Config {
-    private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+        private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    public static final ModConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
-            .comment("Whether to log the dirt block on common setup")
-            .define("logDirtBlock", true);
+        public static final ModConfigSpec.DoubleValue SPEED_MULTIPLIER = BUILDER
+                        .comment("Mutiplier to the base speed of the greenhouse")
+                        .defineInRange("speedMultiplier", 1., 0.1, 10.);
 
-    public static final ModConfigSpec.IntValue MAGIC_NUMBER = BUILDER
-            .comment("A magic number")
-            .defineInRange("magicNumber", 42, 0, Integer.MAX_VALUE);
+        public static final ModConfigSpec.DoubleValue NOWATER_PENALTY = BUILDER
+                        .comment("Penalty to the speed of the machine if water is not supplied")
+                        .defineInRange("waterPenalty", 3., 1., 100.);
 
-    public static final ModConfigSpec.ConfigValue<String> MAGIC_NUMBER_INTRODUCTION = BUILDER
-            .comment("What you want the introduction message to be for the magic number")
-            .define("magicNumberIntroduction", "The magic number is... ");
+        public static final ModConfigSpec.DoubleValue FERTILIZER_BONUS = BUILDER
+                        .comment("Multiplier to the speed of the machine if fertilizer is supplied")
+                        .defineInRange("fertilizerBonus", 3., 1., 100.);
+        
+        public static final ModConfigSpec.DoubleValue WATER_USAGE_MULTIPLIER = BUILDER
+                        .comment("Multiplier to the amount of water used to grow crops")
+                        .defineInRange("waterUsageMultiplier", 1., 0.1, 10.);
 
-    // a list of strings that are treated as resource locations for items
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_STRINGS = BUILDER
-            .comment("A list of items to log on common setup.")
-            .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), () -> "", Config::validateItemName);
+        public static final ModConfigSpec.IntValue GREENHOUSE_WIDTH = BUILDER
+                        .comment("Maximum distance from the controller the greenhouse can extend to")
+                        .defineInRange("greenhouseWidth", 10, 2, 100);
+        
+        public static final ModConfigSpec.IntValue GREENHOUSE_HEIGHT = BUILDER
+                        .comment("Maximum height from the controller the greenhouse can extend to")
+                        .defineInRange("greenhouseHeight", 10, 2, 100);
 
-    static final ModConfigSpec SPEC = BUILDER.build();
+        public static final ModConfigSpec.ConfigValue<List<? extends String>> TAGS_WHITELIST = BUILDER
+                        .comment("A list of *item tags* to allow in the greenhouse (only items with the tag with loot from crops)")
+                        .defineListAllowEmpty("tagsWhitelist",
+                                        List.of("c:crops", "c:seeds", "c:foods/fruit", "c:foods/vegetable",
+                                                        "c:foods/berry", "minecraft:flowers"),
+                                        () -> "", Config::validateItemTagName);
 
-    private static boolean validateItemName(final Object obj) {
-        return obj instanceof String itemName && BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(itemName));
-    }
+        public static final ModConfigSpec.ConfigValue<List<? extends String>> BLOCK_BLACKLIST = BUILDER
+                        .comment("A list of *blocks* to forbid in the greenhouse")
+                        .defineListAllowEmpty("blockBlacklist", List.of("minecraft:wither_rose"), () -> "",
+                                        Config::validateBlockName);
+
+        static final ModConfigSpec SPEC = BUILDER.build();
+
+        private static boolean validateBlockName(final Object obj) {
+                return obj instanceof String blockName
+                                && BuiltInRegistries.BLOCK.containsKey(ResourceLocation.parse(blockName));
+        }
+
+        private static boolean validateItemTagName(final Object obj) {
+                return obj instanceof String;
+        }
 }

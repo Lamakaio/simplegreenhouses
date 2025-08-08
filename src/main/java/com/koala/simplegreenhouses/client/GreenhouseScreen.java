@@ -84,7 +84,7 @@ public class GreenhouseScreen extends AbstractContainerScreen<GreenhouseMenu> {
 		if (waterPixels < TANK_HEIGHT) {
 			graphics.blitSprite(TANK_EMPTY, TANK_WIDTH, TANK_HEIGHT, 0, 0,
 			xStart + 6,
-			yStart + 20, TANK_WIDTH, TANK_HEIGHT);
+			yStart + 20, TANK_WIDTH, TANK_HEIGHT - waterPixels);
 		}
 		if (waterPixels > 0) {
 			graphics.blitSprite(TANK_FULL, TANK_WIDTH, TANK_HEIGHT, 0, TANK_HEIGHT - waterPixels, xStart + 6,

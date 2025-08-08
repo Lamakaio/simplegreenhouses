@@ -51,12 +51,42 @@ public class RegCapabilities {
         );
 
         event.registerBlock(
+            Capabilities.FluidHandler.BLOCK, // capability to register for
+            (level, pos, state, be, side) -> {
+                if (be instanceof GhGlassBlockEntity glassbe) {
+                    BlockEntity cbe = level.getBlockEntity(glassbe.controllerPos);
+                    if (cbe instanceof GhControllerBlockEntity ghbe) {
+                        return ghbe.fluidHandler;
+                    }
+                }
+                return null;
+            },
+            // blocks to register for
+            SimpleGreenhouses.GH_GLASS_BLOCK.get()
+        );
+
+        event.registerBlock(
             Capabilities.ItemHandler.BLOCK, // capability to register for
             (level, pos, state, be, side) -> {
                 if (be instanceof RichSoilBlockEntity rsbe) {
                     BlockEntity cbe = level.getBlockEntity(rsbe.controllerPos);
                     if (cbe instanceof GhControllerBlockEntity ghbe) {
                         return ghbe.ioHandler;
+                    }
+                }
+                return null;
+            },
+            // blocks to register for
+            SimpleGreenhouses.RICH_SOIL_BLOCK.get()
+        );
+
+        event.registerBlock(
+            Capabilities.FluidHandler.BLOCK, // capability to register for
+            (level, pos, state, be, side) -> {
+                if (be instanceof RichSoilBlockEntity rsbe) {
+                    BlockEntity cbe = level.getBlockEntity(rsbe.controllerPos);
+                    if (cbe instanceof GhControllerBlockEntity ghbe) {
+                        return ghbe.fluidHandler;
                     }
                 }
                 return null;

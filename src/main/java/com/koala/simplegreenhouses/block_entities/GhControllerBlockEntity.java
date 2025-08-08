@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Lists;
+import com.koala.simplegreenhouses.Config;
 import com.koala.simplegreenhouses.SimpleGreenhouses;
 import com.koala.simplegreenhouses.interfaces.GhSyncData;
 import com.koala.simplegreenhouses.interfaces.IOItemHandler;
@@ -75,8 +76,6 @@ public class GhControllerBlockEntity extends BlockEntity {
     public final OutputItemHandler output = new OutputItemHandler(this);
     public final IOItemHandler ioHandler = new IOItemHandler(input, output);
     public final FluidTank fluidHandler;
-    
-
 
     public LootParams.Builder lootParams;
 
@@ -113,16 +112,17 @@ public class GhControllerBlockEntity extends BlockEntity {
     }
 
     protected void updateSpeed() {
-        hasWater = !fluidHandler.drain(waterPerCrop, FluidAction.EXECUTE).isEmpty();
+        hasWater = !fluidHandler.drain((int) (waterPerCrop * Config.WATER_USAGE_MULTIPLIER.get()), FluidAction.EXECUTE).isEmpty();
         hasFertilizer = !input.extractItem(0, 1, false).isEmpty();
 
         speed = cultivatedBlocks.size();
         if (!hasWater) {
-            speed /= 3;
+            speed /= Config.NOWATER_PENALTY.get();
         }
         if (hasFertilizer) {
-            speed *= 3;
-        } 
+            speed *= Config.FERTILIZER_BONUS.get();
+        }
+        speed *= Config.SPEED_MULTIPLIER.get();
     }
 
     protected LootParams.Builder getLootParams() {
@@ -140,7 +140,6 @@ public class GhControllerBlockEntity extends BlockEntity {
     }
 
     public void markOutputInventoryChanged() {
-        outputSimulatorCache = null;
         blocked = false;
         setChanged();
     }
@@ -178,8 +177,6 @@ public class GhControllerBlockEntity extends BlockEntity {
             compound.put(CULTIVATED, tag);
         });
     }
-
-    
 
     public String tryAssembleMultiblock() {
         // discover soil
@@ -219,10 +216,11 @@ public class GhControllerBlockEntity extends BlockEntity {
             int xdiff = worldPosition.getX() - soil.getX();
             int zdiff = worldPosition.getZ() - soil.getZ();
 
-            if (Math.abs(xdiff) > 9 || Math.abs(zdiff) > 9) {
-                return "Greenhouse soil layer is too big ! +- 9 blocks from the controller";
+            if (Math.abs(xdiff) > Config.GREENHOUSE_WIDTH.get() || Math.abs(zdiff) > Config.GREENHOUSE_WIDTH.get()) {
+                return String.format("Greenhouse soil layer is too big ! +- %d blocks from the controller",
+                        Config.GREENHOUSE_WIDTH.get());
             }
-            
+
             if (be instanceof RichSoilBlockEntity rsbe) {
                 rsbe.controllerPos = worldPosition;
             }
@@ -231,9 +229,12 @@ public class GhControllerBlockEntity extends BlockEntity {
             BlockPos above_pos = soil.above();
             BlockState above = level.getBlockState(above_pos);
             boolean is_crop = false;
-            for (ItemStack d : above.getDrops(getLootParams())) {
-                if (SimpleGreenhouses.isItemCultivable(d)) {
-                    is_crop = true;
+
+            if (!SimpleGreenhouses.isBlockBlacklisted(above.getBlock())) {
+                for (ItemStack d : above.getDrops(getLootParams())) {
+                    if (SimpleGreenhouses.isItemCultivable(d)) {
+                        is_crop = true;
+                    }
                 }
             }
 
@@ -243,7 +244,7 @@ public class GhControllerBlockEntity extends BlockEntity {
 
             // try to find some glass above
             boolean found_glass = false;
-            while (above_pos.getY() < soil.getY() + 10) {
+            while (above_pos.getY() < soil.getY() + Config.GREENHOUSE_HEIGHT.get()) {
                 if (above.is(SimpleGreenhouses.GH_GLASS_BLOCK.get())) {
                     found_glass = true;
                     glass_blocks.add(above_pos);
@@ -295,7 +296,9 @@ public class GhControllerBlockEntity extends BlockEntity {
                         int xdiff = worldPosition.getX() - around.getX();
                         int zdiff = worldPosition.getZ() - around.getZ();
                         int ydiff = around.getY() - worldPosition.getY();
-                        if (Math.abs(xdiff) <= 9 && Math.abs(zdiff) <= 9 && ydiff <= 9 && ydiff >= 0) {
+                        if (Math.abs(xdiff) <= Config.GREENHOUSE_WIDTH.get()
+                                && Math.abs(zdiff) <= Config.GREENHOUSE_WIDTH.get()
+                                && ydiff <= Config.GREENHOUSE_HEIGHT.get() && ydiff >= 0) {
                             BlockEntity be = level.getBlockEntity(around);
                             if (be instanceof GhGlassBlockEntity glassbe) {
                                 glassbe.controllerPos = worldPosition;
@@ -308,8 +311,7 @@ public class GhControllerBlockEntity extends BlockEntity {
                 }
             }
         }
-        hasWater = 
-        assembled = true;
+        hasWater = assembled = true;
 
         return "";
     }
