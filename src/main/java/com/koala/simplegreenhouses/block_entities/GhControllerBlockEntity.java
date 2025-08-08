@@ -1,46 +1,39 @@
-package com.koala.simplegreenhouses;
+package com.koala.simplegreenhouses.block_entities;
 
-import com.google.common.collect.Lists;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Lists;
+import com.koala.simplegreenhouses.SimpleGreenhouses;
+import com.koala.simplegreenhouses.interfaces.GhSyncData;
+import com.koala.simplegreenhouses.interfaces.IOItemHandler;
+import com.koala.simplegreenhouses.interfaces.InputItemHandler;
+import com.koala.simplegreenhouses.interfaces.OutputItemHandler;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class GhControllerBlockEntity extends BlockEntity {
 
@@ -51,16 +44,12 @@ public class GhControllerBlockEntity extends BlockEntity {
     public static final String ASSEMBLED = "assembled";
     public static final String BLOCKED = "blocked";
     public static final String NEXT_CROP = "next_crop";
-    public static final String FERTILIZER = "fertilizer";
-    public static final String WATER_AMOUNT = "water_amount";
+    public static final String SPEED = "speed";
     public static final String CULTIVATED = "cultivated";
     public static final BlockEntityTicker<GhControllerBlockEntity> SERVER_TICKER = (level, pos, state, core) -> core
             .serverTick();
 
     public static final Codec<List<BlockPos>> CULTIVATED_BLOCKPOS_CODEC = BlockPos.CODEC.listOf();
-
-    public final InputItemHandler input = new InputItemHandler(this);
-    public final OutputItemHandler output = new OutputItemHandler(this);
 
     public GhSyncData dataSlot = new GhSyncData(this);
 
@@ -74,40 +63,43 @@ public class GhControllerBlockEntity extends BlockEntity {
     public IItemHandler outputSimulatorCache = null;
 
     public int progress = 0;
-    public int maxProgress = 250; // TODO add in config or smth
+    public int maxProgress = 1000; // TODO add in config or smth
     public boolean blocked = false;
+    public boolean hasWater = false;
+    public boolean hasFertilizer = false;
+    public int speed = 10;
     public int nextCrop = 0;
-    public int waterAmount = 0;
+    public int waterPerCrop = 100;
 
-    public int remainingFertilizer = 0;
+    public final InputItemHandler input = new InputItemHandler(this);
+    public final OutputItemHandler output = new OutputItemHandler(this);
+    public final IOItemHandler ioHandler = new IOItemHandler(input, output);
+    public final FluidTank fluidHandler;
+    
+
 
     public LootParams.Builder lootParams;
 
     public GhControllerBlockEntity(BlockPos pos, BlockState state) {
         super(SimpleGreenhouses.GH_CONTROLLER_BLOCK_ENTITY.get(), pos, state);
+        fluidHandler = new FluidTank(25000);
+        fluidHandler.setValidator((FluidStack f) -> f.is(FluidTags.WATER));
     }
 
     protected void serverTick() {
         if (blocked || !assembled) {
             return;
         }
-        if (remainingFertilizer == 0) {
-            tryConsumeFertilizer();
-        }
-        if (remainingFertilizer > 0) {
-            remainingFertilizer -= 1;
-            progress += 5 * cultivatedBlocks.size();
-        } else {
-            progress += cultivatedBlocks.size();
-        }
+        progress += speed;
         while (progress >= maxProgress) {
             progress -= maxProgress;
             BlockPos cropPos = cultivatedBlocks.get(nextCrop);
 
             List<ItemStack> items = level.getBlockState(cropPos).getDrops(getLootParams());
             for (ItemStack i : items) {
-                if (i.is(Tags.Items.CROPS) || i.is(Tags.Items.SEEDS)) {
+                if (SimpleGreenhouses.isItemCultivable(i)) {
                     ItemStack result = output.insertCraftResult(i, false);
+                    updateSpeed();
                     if (!result.isEmpty()) {
                         blocked = true;
                         return;
@@ -120,6 +112,19 @@ public class GhControllerBlockEntity extends BlockEntity {
 
     }
 
+    protected void updateSpeed() {
+        hasWater = !fluidHandler.drain(waterPerCrop, FluidAction.EXECUTE).isEmpty();
+        hasFertilizer = !input.extractItem(0, 1, false).isEmpty();
+
+        speed = cultivatedBlocks.size();
+        if (!hasWater) {
+            speed /= 3;
+        }
+        if (hasFertilizer) {
+            speed *= 3;
+        } 
+    }
+
     protected LootParams.Builder getLootParams() {
         if (lootParams == null) {
             lootParams = new LootParams.Builder((ServerLevel) level);
@@ -128,12 +133,6 @@ public class GhControllerBlockEntity extends BlockEntity {
             lootParams.withParameter(LootContextParams.ORIGIN, Vec3.ZERO);
         }
         return lootParams;
-    }
-
-    protected void tryConsumeFertilizer() {
-        if (!input.extractItem(0, 1, false).isEmpty()) {
-            remainingFertilizer += 20;
-        }
     }
 
     public void markInputInventoryChanged() {
@@ -153,10 +152,10 @@ public class GhControllerBlockEntity extends BlockEntity {
         this.output.deserializeNBT(registries, compound.getCompound(OUTPUT));
         this.progress = compound.getInt(PROGRESS);
         this.nextCrop = compound.getInt(NEXT_CROP);
-        this.remainingFertilizer = compound.getInt(FERTILIZER);
-        this.waterAmount = compound.getInt(WATER_AMOUNT);
+        this.speed = compound.getInt(SPEED);
         this.assembled = compound.getBoolean(ASSEMBLED);
         this.blocked = compound.getBoolean(BLOCKED);
+        fluidHandler.readFromNBT(registries, compound);
 
         this.cultivatedBlocks = Lists.newArrayList(CULTIVATED_BLOCKPOS_CODEC
                 .parse(NbtOps.INSTANCE, compound.get(CULTIVATED)).result().orElse(List.of()));
@@ -169,15 +168,18 @@ public class GhControllerBlockEntity extends BlockEntity {
         compound.put(OUTPUT, this.output.serializeNBT(registries));
         compound.putInt(PROGRESS, this.progress);
         compound.putInt(NEXT_CROP, this.nextCrop);
-        compound.putInt(FERTILIZER, this.remainingFertilizer);
-        compound.putInt(WATER_AMOUNT, this.waterAmount);
+        compound.putInt(SPEED, this.speed);
         compound.putBoolean(ASSEMBLED, this.assembled);
         compound.putBoolean(BLOCKED, this.blocked);
+
+        fluidHandler.writeToNBT(registries, compound);
 
         CULTIVATED_BLOCKPOS_CODEC.encodeStart(NbtOps.INSTANCE, this.cultivatedBlocks).ifSuccess(tag -> {
             compound.put(CULTIVATED, tag);
         });
     }
+
+    
 
     public String tryAssembleMultiblock() {
         // discover soil
@@ -213,27 +215,24 @@ public class GhControllerBlockEntity extends BlockEntity {
         for (BlockPos soil : discovered) {
 
             // set controller position from the soil
-            BlockState soil_state = level.getBlockState(soil);
+            BlockEntity be = level.getBlockEntity(soil);
             int xdiff = worldPosition.getX() - soil.getX();
             int zdiff = worldPosition.getZ() - soil.getZ();
 
             if (Math.abs(xdiff) > 9 || Math.abs(zdiff) > 9) {
                 return "Greenhouse soil layer is too big ! +- 9 blocks from the controller";
             }
-            soil_state = soil_state.setValue(RichSoilBlock.X, Math.abs(xdiff));
-            soil_state = soil_state.setValue(RichSoilBlock.Z, Math.abs(zdiff));
-
-            soil_state = soil_state.setValue(RichSoilBlock.IS_NEG_X, Math.signum(xdiff) < 0f);
-            soil_state = soil_state.setValue(RichSoilBlock.IS_NEG_Z, Math.signum(zdiff) < 0f);
-
-            level.setBlock(soil, soil_state, Block.UPDATE_NONE | Block.UPDATE_SUPPRESS_DROPS);
+            
+            if (be instanceof RichSoilBlockEntity rsbe) {
+                rsbe.controllerPos = worldPosition;
+            }
 
             // discover the eventual crop
             BlockPos above_pos = soil.above();
             BlockState above = level.getBlockState(above_pos);
             boolean is_crop = false;
             for (ItemStack d : above.getDrops(getLootParams())) {
-                if (d.is(Tags.Items.CROPS) || d.is(Tags.Items.SEEDS)) {
+                if (SimpleGreenhouses.isItemCultivable(d)) {
                     is_crop = true;
                 }
             }
@@ -248,16 +247,10 @@ public class GhControllerBlockEntity extends BlockEntity {
                 if (above.is(SimpleGreenhouses.GH_GLASS_BLOCK.get())) {
                     found_glass = true;
                     glass_blocks.add(above_pos);
-
-                    above = above.setValue(GhGlassBlock.X, Math.abs(xdiff));
-                    above = above.setValue(GhGlassBlock.Z, Math.abs(zdiff));
-                    above = above.setValue(GhGlassBlock.Y, above_pos.getY() - soil.getY());
-
-                    above = above.setValue(GhGlassBlock.IS_NEG_X, Math.signum(xdiff) < 0f);
-                    above = above.setValue(GhGlassBlock.IS_NEG_Z, Math.signum(zdiff) < 0f);
-
-                    level.setBlock(above_pos, above, Block.UPDATE_NONE | Block.UPDATE_SUPPRESS_DROPS);
-                    break;
+                    be = level.getBlockEntity(above_pos);
+                    if (be instanceof GhGlassBlockEntity glassbe) {
+                        glassbe.controllerPos = worldPosition;
+                    }
                 }
                 above_pos = above_pos.above();
                 above = level.getBlockState(above_pos);
@@ -303,13 +296,10 @@ public class GhControllerBlockEntity extends BlockEntity {
                         int zdiff = worldPosition.getZ() - around.getZ();
                         int ydiff = around.getY() - worldPosition.getY();
                         if (Math.abs(xdiff) <= 9 && Math.abs(zdiff) <= 9 && ydiff <= 9 && ydiff >= 0) {
-                            around_state = around_state.setValue(GhGlassBlock.X, Math.abs(xdiff));
-                            around_state = around_state.setValue(GhGlassBlock.Z, Math.abs(zdiff));
-                            around_state = around_state.setValue(GhGlassBlock.Y, around.getY() - worldPosition.getY());
-
-                            around_state = around_state.setValue(GhGlassBlock.IS_NEG_X, Math.signum(xdiff) < 0f);
-                            around_state = around_state.setValue(GhGlassBlock.IS_NEG_Z, Math.signum(zdiff) < 0f);
-                            level.setBlock(around, around_state, Block.UPDATE_NONE | Block.UPDATE_SUPPRESS_DROPS);
+                            BlockEntity be = level.getBlockEntity(around);
+                            if (be instanceof GhGlassBlockEntity glassbe) {
+                                glassbe.controllerPos = worldPosition;
+                            }
 
                             stack.add(around);
                         }
@@ -318,7 +308,7 @@ public class GhControllerBlockEntity extends BlockEntity {
                 }
             }
         }
-
+        hasWater = 
         assembled = true;
 
         return "";

@@ -1,5 +1,8 @@
-package com.koala.simplegreenhouses;
+package com.koala.simplegreenhouses.blocks;
 
+import com.koala.simplegreenhouses.SimpleGreenhouses;
+import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
+import com.koala.simplegreenhouses.interfaces.GreenhouseMenu;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
@@ -7,8 +10,11 @@ import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.OutgoingChatMessage;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -18,6 +24,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
 public class GhControllerBlock extends Block implements EntityBlock {
 
@@ -36,6 +45,21 @@ public class GhControllerBlock extends Block implements EntityBlock {
         return new GhControllerBlockEntity(pos, state);
     }
 
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+            Player player, InteractionHand hand, BlockHitResult hitResult) {
+
+        
+        IFluidHandlerItem cap = stack.getCapability(Capabilities.FluidHandler.ITEM);
+        BlockEntity be = level.getBlockEntity(pos);
+        if (cap != null && be instanceof GhControllerBlockEntity ghbe) {
+            if (FluidUtil.interactWithFluidHandler(player, hand, ghbe.fluidHandler)) {
+                return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            };
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
             BlockHitResult hit) {
@@ -47,16 +71,17 @@ public class GhControllerBlock extends Block implements EntityBlock {
                 }
                 if (ghbe.assembled) {
                     serverPlayer.openMenu(GreenhouseMenu.getServerMenuProvider(ghbe, pos));
-                    return InteractionResult.SUCCESS;
+                    return InteractionResult.sidedSuccess(level.isClientSide());
                 } else {
                     ((ServerPlayer) player).sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.system(
                             String.format("[Simple Greenhouses] Error assembling multiblock : %s", ghbe.asm_result))),
                             false, ChatType.bind(ChatType.MSG_COMMAND_INCOMING, player.createCommandSourceStack()));
+                    return InteractionResult.FAIL;
                 }
             }
         }
 
-        return InteractionResult.SUCCESS;
+        return InteractionResult.PASS;
     }
 
     @SuppressWarnings("unchecked") // Due to generics, an unchecked cast is necessary here.

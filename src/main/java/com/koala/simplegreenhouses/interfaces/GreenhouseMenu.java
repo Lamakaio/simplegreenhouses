@@ -1,18 +1,19 @@
-package com.koala.simplegreenhouses;
+package com.koala.simplegreenhouses.interfaces;
 
 import java.util.HashMap;
 import java.util.Optional;
 
+import com.koala.simplegreenhouses.SimpleGreenhouses;
+import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -59,7 +60,6 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 	 * Used by the Server to determine whether the player is close enough to use the
 	 * Container
 	 **/
-	private final ContainerLevelAccess usabilityTest;
 	private final ContainerData furnaceData;
 	private final Optional<GhControllerBlockEntity> serverController;
 
@@ -69,7 +69,7 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 	public static GreenhouseMenu getClientMenu(int id, Inventory playerInventory) {
 		// init client inventory with dummy slots
 		return new GreenhouseMenu(id, playerInventory, BlockPos.ZERO, new ItemStackHandler(1),
-				new UninsertableItemStackHandler(12), new SimpleContainerData(4),
+				new UninsertableItemStackHandler(12), new SimpleContainerData(5),
 				Optional.empty());
 	}
 
@@ -96,7 +96,6 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 		super(SimpleGreenhouses.GH_MENU.get(), id);
 
 		Player player = playerInventory.player;
-		this.usabilityTest = ContainerLevelAccess.create(player.level(), pos);
 		this.furnaceData = furnaceData;
 		this.serverController = serverController;
 
@@ -186,12 +185,16 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 		return this.furnaceData.get(1);
 	}
 
-	public void setAssembled(int assembled) {
-		this.furnaceData.set(2, assembled);
-	}
-
 	public int getAssembled() {
 		return this.furnaceData.get(2);
+	}
+
+	public int getWaterAmount() {
+		return this.furnaceData.get(3);
+	}
+
+	public int getMaxWater() {
+		return this.furnaceData.get(4);
 	}
 
 	// public int getCookProgressionScaled()

@@ -1,4 +1,6 @@
-package com.koala.simplegreenhouses;
+package com.koala.simplegreenhouses.interfaces;
+
+import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
 
 import net.minecraft.world.inventory.ContainerData;
 
@@ -22,6 +24,10 @@ public class GhSyncData implements ContainerData
 				return te.maxProgress;
 			case 2:
 				return te.assembled ? 1 : 0;
+			case 3:
+				return te.fluidHandler.getFluidAmount();
+			case 4:
+				return te.fluidHandler.getCapacity();
 			default:
 				return 0;
 		}
@@ -36,7 +42,7 @@ public class GhSyncData implements ContainerData
 	@Override
 	public int getCount()
 	{
-		return 3;
+		return 5;
 	}
 
 }

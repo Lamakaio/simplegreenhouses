@@ -4,46 +4,47 @@ import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 
+import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
+import com.koala.simplegreenhouses.block_entities.GhGlassBlockEntity;
+import com.koala.simplegreenhouses.block_entities.RichSoilBlockEntity;
+import com.koala.simplegreenhouses.blocks.GhControllerBlock;
+import com.koala.simplegreenhouses.blocks.GhGlassBlock;
+import com.koala.simplegreenhouses.blocks.RichSoilBlock;
+import com.koala.simplegreenhouses.client.ClientProxy;
+import com.koala.simplegreenhouses.interfaces.GreenhouseMenu;
+import com.koala.simplegreenhouses.interfaces.RegCapabilities;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.flag.FeatureFlags;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.block.state.BlockBehaviour.StatePredicate;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
-import net.minecraft.world.level.material.MapColor;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.client.model.IModelBuilder.Simple;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -107,6 +108,17 @@ public class SimpleGreenhouses {
                                         .noOcclusion().isValidSpawn(Blocks::never)
                                         .isViewBlocking(SimpleGreenhouses::never)
                                         .isSuffocating(SimpleGreenhouses::never)));
+
+        public static final DeferredBlock<Block> GH_GLASS_BLOCK_DEFAULT = BLOCKS.registerSimpleBlock(
+                        "greenhouse_glass_default",
+                        BlockBehaviour.Properties.of()
+                                        .destroyTime(0.5f)
+                                        .explosionResistance(1.0f)
+                                        .sound(SoundType.GLASS)
+                                        .noOcclusion().isValidSpawn(Blocks::never)
+                                        .isViewBlocking(SimpleGreenhouses::never)
+                                        .isSuffocating(SimpleGreenhouses::never));
+
         public static final DeferredItem<BlockItem> GH_GLASS_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(
                         "greenhouse_glass",
                         GH_GLASS_BLOCK);
@@ -136,21 +148,27 @@ public class SimpleGreenhouses {
         // Block entities
         public static final Supplier<BlockEntityType<GhControllerBlockEntity>> GH_CONTROLLER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
                         .register(
-                                        "my_block_entity",
-                                        // The block entity type, created using a builder.
+                                        "gh_controller_block_entity",
                                         () -> BlockEntityType.Builder.of(
-                                                        // The supplier to use for constructing the block entity
-                                                        // instances.
                                                         GhControllerBlockEntity::new,
-                                                        // A vararg of blocks that can have this block entity.
-                                                        // This assumes the existence of the referenced blocks as
-                                                        // DeferredBlock<Block>s.
-                                                        GH_CONTROLLER_BLOCK.get(), GH_CONTROLLER_BLOCK.get())
-                                                        // Build using null; vanilla does some datafixer shenanigans
-                                                        // with the parameter
-                                                        // that we don't need.
+                                                        GH_CONTROLLER_BLOCK.get())
                                                         .build(null));
 
+        public static final Supplier<BlockEntityType<GhGlassBlockEntity>> GH_GLASS_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
+                        .register(
+                                        "gh_glass_block_entity",
+                                        () -> BlockEntityType.Builder.of(
+                                                        GhGlassBlockEntity::new,
+                                                        GH_GLASS_BLOCK.get())
+                                                        .build(null));
+
+        public static final Supplier<BlockEntityType<RichSoilBlockEntity>> RICH_SOIL_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
+                        .register(
+                                        "rich_soil_block_entity",
+                                        () -> BlockEntityType.Builder.of(
+                                                        RichSoilBlockEntity::new,
+                                                        RICH_SOIL_BLOCK.get())
+                                                        .build(null));
         // menus
         public static final DeferredHolder<MenuType<?>, MenuType<GreenhouseMenu>> GH_MENU = MENUS.register(
                         "greenhouse_menu",
@@ -179,6 +197,8 @@ public class SimpleGreenhouses {
                 // Do not add this line if there are no @SubscribeEvent-annotated functions in
                 // this class, like onServerStarting() below.
                 NeoForge.EVENT_BUS.register(this);
+
+                modEventBus.register(RegCapabilities.class);
 
                 // Register our mod's ModConfigSpec so that FML can create and load the config
                 // file for us
@@ -212,5 +232,10 @@ public class SimpleGreenhouses {
 
         public static ResourceLocation id(String path) {
                 return ResourceLocation.fromNamespaceAndPath(MODID, path);
+        }
+
+        public static boolean isItemCultivable(ItemStack i) {
+                return i.is(Tags.Items.CROPS) || i.is(Tags.Items.SEEDS) || i.is(Tags.Items.FOODS_FRUIT)
+                                || i.is(Tags.Items.FOODS_BERRY) || i.is(ItemTags.FLOWERS);
         }
 }

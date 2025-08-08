@@ -1,4 +1,4 @@
-package com.koala.simplegreenhouses;
+package com.koala.simplegreenhouses.interfaces;
 
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;

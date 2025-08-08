@@ -1,5 +1,9 @@
-package com.koala.simplegreenhouses;
+package com.koala.simplegreenhouses.interfaces;
 
+import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
+
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class InputItemHandler extends ItemStackHandler
@@ -10,6 +14,11 @@ public class InputItemHandler extends ItemStackHandler
 	{
 		super(1);
 		this.te = te;
+	}
+	@Override
+	public boolean isItemValid(int slot, ItemStack stack)
+	{
+		return stack.is(Tags.Items.FERTILIZERS);
 	}
 
 	@Override
