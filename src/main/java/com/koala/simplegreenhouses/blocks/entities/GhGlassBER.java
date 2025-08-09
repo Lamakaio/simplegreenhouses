@@ -1,4 +1,4 @@
-package com.koala.simplegreenhouses.block_entities;
+package com.koala.simplegreenhouses.blocks.entities;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 

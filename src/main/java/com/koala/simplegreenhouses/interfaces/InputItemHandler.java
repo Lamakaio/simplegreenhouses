@@ -1,6 +1,6 @@
 package com.koala.simplegreenhouses.interfaces;
 
-import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
+import com.koala.simplegreenhouses.blocks.entities.GhControllerBlockEntity;
 
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.Tags;

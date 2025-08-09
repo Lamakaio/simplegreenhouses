@@ -3,8 +3,7 @@ package com.koala.simplegreenhouses.interfaces;
 import java.util.HashMap;
 import java.util.Optional;
 
-import com.koala.simplegreenhouses.SimpleGreenhouses;
-import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
+import com.koala.simplegreenhouses.blocks.entities.GhControllerBlockEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -93,7 +92,7 @@ public class GreenhouseMenu extends AbstractContainerMenu {
 	protected GreenhouseMenu(int id, Inventory playerInventory, BlockPos pos, IItemHandler inputs,
 			IItemHandler outputs, ContainerData furnaceData,
 			Optional<GhControllerBlockEntity> serverController) {
-		super(SimpleGreenhouses.GH_MENU.get(), id);
+		super(InterfaceRegistrar.GH_MENU.get(), id);
 
 		Player player = playerInventory.player;
 		this.furnaceData = furnaceData;

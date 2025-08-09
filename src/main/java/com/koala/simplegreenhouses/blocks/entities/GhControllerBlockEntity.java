@@ -1,4 +1,4 @@
-package com.koala.simplegreenhouses.block_entities;
+package com.koala.simplegreenhouses.blocks.entities;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -11,6 +11,7 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Lists;
 import com.koala.simplegreenhouses.Config;
 import com.koala.simplegreenhouses.SimpleGreenhouses;
+import com.koala.simplegreenhouses.blocks.BlocksRegistrar;
 import com.koala.simplegreenhouses.interfaces.GhSyncData;
 import com.koala.simplegreenhouses.interfaces.IOItemHandler;
 import com.koala.simplegreenhouses.interfaces.InputItemHandler;
@@ -80,7 +81,7 @@ public class GhControllerBlockEntity extends BlockEntity {
     public LootParams.Builder lootParams;
 
     public GhControllerBlockEntity(BlockPos pos, BlockState state) {
-        super(SimpleGreenhouses.GH_CONTROLLER_BLOCK_ENTITY.get(), pos, state);
+        super(BlocksRegistrar.GH_CONTROLLER_BLOCK_ENTITY.get(), pos, state);
         fluidHandler = new FluidTank(25000);
         fluidHandler.setValidator((FluidStack f) -> f.is(FluidTags.WATER));
     }
@@ -185,22 +186,22 @@ public class GhControllerBlockEntity extends BlockEntity {
         to_discover.add(worldPosition);
         while (!to_discover.isEmpty()) {
             BlockPos next = to_discover.pop();
-            if (level.getBlockState(next.north()).getBlock() == SimpleGreenhouses.RICH_SOIL_BLOCK.get()
+            if (level.getBlockState(next.north()).getBlock() == BlocksRegistrar.RICH_SOIL_BLOCK.get()
                     && discovered.add(next.north())) {
                 to_discover.push(next.north());
             }
             ;
-            if (level.getBlockState(next.south()).getBlock() == SimpleGreenhouses.RICH_SOIL_BLOCK.get()
+            if (level.getBlockState(next.south()).getBlock() == BlocksRegistrar.RICH_SOIL_BLOCK.get()
                     && discovered.add(next.south())) {
                 to_discover.push(next.south());
             }
             ;
-            if (level.getBlockState(next.west()).getBlock() == SimpleGreenhouses.RICH_SOIL_BLOCK.get()
+            if (level.getBlockState(next.west()).getBlock() == BlocksRegistrar.RICH_SOIL_BLOCK.get()
                     && discovered.add(next.west())) {
                 to_discover.push(next.west());
             }
             ;
-            if (level.getBlockState(next.east()).getBlock() == SimpleGreenhouses.RICH_SOIL_BLOCK.get()
+            if (level.getBlockState(next.east()).getBlock() == BlocksRegistrar.RICH_SOIL_BLOCK.get()
                     && discovered.add(next.east())) {
                 to_discover.push(next.east());
             }
@@ -245,7 +246,7 @@ public class GhControllerBlockEntity extends BlockEntity {
             // try to find some glass above
             boolean found_glass = false;
             while (above_pos.getY() < soil.getY() + Config.GREENHOUSE_HEIGHT.get()) {
-                if (above.is(SimpleGreenhouses.GH_GLASS_BLOCK.get())) {
+                if (above.is(BlocksRegistrar.GH_GLASS_BLOCK.get())) {
                     found_glass = true;
                     glass_blocks.add(above_pos);
                     be = level.getBlockEntity(above_pos);
@@ -292,7 +293,7 @@ public class GhControllerBlockEntity extends BlockEntity {
                 if (!glass_blocks.contains(around)) {
                     glass_blocks.add(around);
                     BlockState around_state = level.getBlockState(around);
-                    if (around_state.is(SimpleGreenhouses.GH_GLASS_BLOCK.get())) {
+                    if (around_state.is(BlocksRegistrar.GH_GLASS_BLOCK.get())) {
                         int xdiff = worldPosition.getX() - around.getX();
                         int zdiff = worldPosition.getZ() - around.getZ();
                         int ydiff = around.getY() - worldPosition.getY();

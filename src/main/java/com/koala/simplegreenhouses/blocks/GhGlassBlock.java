@@ -1,8 +1,7 @@
 package com.koala.simplegreenhouses.blocks;
 
-import com.koala.simplegreenhouses.SimpleGreenhouses;
-import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
-import com.koala.simplegreenhouses.block_entities.GhGlassBlockEntity;
+import com.koala.simplegreenhouses.blocks.entities.GhControllerBlockEntity;
+import com.koala.simplegreenhouses.blocks.entities.GhGlassBlockEntity;
 import com.koala.simplegreenhouses.interfaces.GreenhouseMenu;
 import com.mojang.serialization.MapCodec;
 
@@ -38,7 +37,7 @@ public class GhGlassBlock extends Block implements EntityBlock {
 
     @Override
     public MapCodec<GhGlassBlock> codec() {
-        return SimpleGreenhouses.GH_GLASS_CODEC.value();
+        return BlocksRegistrar.GH_GLASS_CODEC.value();
     }
 
     @Override

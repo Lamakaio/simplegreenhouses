@@ -1,7 +1,6 @@
 package com.koala.simplegreenhouses.blocks;
 
-import com.koala.simplegreenhouses.SimpleGreenhouses;
-import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
+import com.koala.simplegreenhouses.blocks.entities.GhControllerBlockEntity;
 import com.koala.simplegreenhouses.interfaces.GreenhouseMenu;
 import com.mojang.serialization.MapCodec;
 
@@ -36,7 +35,7 @@ public class GhControllerBlock extends Block implements EntityBlock {
 
     @Override
     public MapCodec<GhControllerBlock> codec() {
-        return SimpleGreenhouses.GH_CONTROLLER_CODEC.value();
+        return BlocksRegistrar.GH_CONTROLLER_CODEC.value();
     }
 
     // Return a new instance of our block entity here.
@@ -98,7 +97,7 @@ public class GhControllerBlock extends Block implements EntityBlock {
         // begin with,
         // or only return a ticker for some blockstates (e.g. when using a "my machine
         // is working" blockstate property).
-        return type == SimpleGreenhouses.GH_CONTROLLER_BLOCK_ENTITY.get()
+        return type == BlocksRegistrar.GH_CONTROLLER_BLOCK_ENTITY.get()
                 ? (BlockEntityTicker<T>) GhControllerBlockEntity.SERVER_TICKER
                 : null;
     }

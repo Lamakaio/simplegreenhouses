@@ -1,8 +1,8 @@
 package com.koala.simplegreenhouses.blocks;
 
 import com.koala.simplegreenhouses.SimpleGreenhouses;
-import com.koala.simplegreenhouses.block_entities.GhControllerBlockEntity;
-import com.koala.simplegreenhouses.block_entities.RichSoilBlockEntity;
+import com.koala.simplegreenhouses.blocks.entities.GhControllerBlockEntity;
+import com.koala.simplegreenhouses.blocks.entities.RichSoilBlockEntity;
 import com.koala.simplegreenhouses.interfaces.GreenhouseMenu;
 import com.mojang.serialization.MapCodec;
 
@@ -29,7 +29,7 @@ public class RichSoilBlock extends Block implements EntityBlock {
 
     @Override
     public MapCodec<RichSoilBlock> codec() {
-        return SimpleGreenhouses.RICH_SOIL_CODEC.value();
+        return BlocksRegistrar.RICH_SOIL_CODEC.value();
     }
 
     @Override

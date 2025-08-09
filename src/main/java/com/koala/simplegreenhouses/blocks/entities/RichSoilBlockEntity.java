@@ -1,6 +1,6 @@
-package com.koala.simplegreenhouses.block_entities;
+package com.koala.simplegreenhouses.blocks.entities;
 
-import com.koala.simplegreenhouses.SimpleGreenhouses;
+import com.koala.simplegreenhouses.blocks.BlocksRegistrar;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -16,7 +16,7 @@ public class RichSoilBlockEntity extends BlockEntity {
     public BlockPos controllerPos = BlockPos.ZERO;
 
     public RichSoilBlockEntity(BlockPos pos, BlockState state) {
-        super(SimpleGreenhouses.RICH_SOIL_BLOCK_ENTITY.get(), pos, state);
+        super(BlocksRegistrar.RICH_SOIL_BLOCK_ENTITY.get(), pos, state);
     }
 
     @Override
