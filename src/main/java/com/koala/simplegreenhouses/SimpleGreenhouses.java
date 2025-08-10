@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 
 import com.koala.simplegreenhouses.blocks.BlocksRegistrar;
 import com.koala.simplegreenhouses.client.ClientProxy;
+import com.koala.simplegreenhouses.datagen.SgBlockTagsProvider;
+import com.koala.simplegreenhouses.datagen.SgLootProvider;
 import com.koala.simplegreenhouses.interfaces.InterfaceRegistrar;
 import com.mojang.logging.LogUtils;
 
@@ -63,6 +65,8 @@ public class SimpleGreenhouses {
         NeoForge.EVENT_BUS.register(this);
 
         modEventBus.register(InterfaceRegistrar.class);
+        modEventBus.register(SgBlockTagsProvider.class);
+        modEventBus.register(SgLootProvider.class);
         InterfaceRegistrar.registerEvent(modEventBus);
         BlocksRegistrar.registerEvent(modEventBus);
 

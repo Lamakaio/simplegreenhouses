@@ -1,6 +1,5 @@
 package com.koala.simplegreenhouses.blocks;
 
-import com.google.common.base.Supplier;
 import com.koala.simplegreenhouses.SimpleGreenhouses;
 import com.koala.simplegreenhouses.blocks.entities.GhControllerBlockEntity;
 import com.koala.simplegreenhouses.blocks.entities.GhGlassBlockEntity;
@@ -101,28 +100,28 @@ public class BlocksRegistrar {
             "greenhouse_controller",
             GH_CONTROLLER_BLOCK);
 
-     // Block entities
-    public static final Supplier<BlockEntityType<GhControllerBlockEntity>> GH_CONTROLLER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
+    // Block entities
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GhControllerBlockEntity>> GH_CONTROLLER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
             .register(
                     "gh_controller_block_entity",
                     () -> BlockEntityType.Builder.of(
-                            GhControllerBlockEntity::new,
+                            (BlockEntityType.BlockEntitySupplier<GhControllerBlockEntity>) GhControllerBlockEntity::new,
                             GH_CONTROLLER_BLOCK.get())
                             .build(null));
 
-    public static final Supplier<BlockEntityType<GhGlassBlockEntity>> GH_GLASS_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GhGlassBlockEntity>> GH_GLASS_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
             .register(
                     "gh_glass_block_entity",
                     () -> BlockEntityType.Builder.of(
-                            GhGlassBlockEntity::new,
+                            (BlockEntityType.BlockEntitySupplier<GhGlassBlockEntity>) GhGlassBlockEntity::new,
                             GH_GLASS_BLOCK.get())
                             .build(null));
 
-    public static final Supplier<BlockEntityType<RichSoilBlockEntity>> RICH_SOIL_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RichSoilBlockEntity>> RICH_SOIL_BLOCK_ENTITY = BLOCK_ENTITY_TYPES
             .register(
                     "rich_soil_block_entity",
                     () -> BlockEntityType.Builder.of(
-                            RichSoilBlockEntity::new,
+                            (BlockEntityType.BlockEntitySupplier<RichSoilBlockEntity>) RichSoilBlockEntity::new,
                             RICH_SOIL_BLOCK.get())
                             .build(null));
 
@@ -146,5 +145,3 @@ public class BlocksRegistrar {
         CREATIVE_MODE_TABS.register(modEventBus);
     }
 }
-
-

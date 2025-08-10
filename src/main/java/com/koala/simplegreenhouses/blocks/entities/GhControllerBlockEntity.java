@@ -24,6 +24,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -94,18 +95,21 @@ public class GhControllerBlockEntity extends BlockEntity {
         while (progress >= maxProgress) {
             progress -= maxProgress;
             BlockPos cropPos = cultivatedBlocks.get(nextCrop);
-
-            List<ItemStack> items = level.getBlockState(cropPos).getDrops(getLootParams());
-            for (ItemStack i : items) {
-                if (SimpleGreenhouses.isItemCultivable(i)) {
-                    ItemStack result = output.insertCraftResult(i, false);
-                    updateSpeed();
-                    if (!result.isEmpty()) {
-                        blocked = true;
-                        return;
+            BlockState state = level.getBlockState(cropPos);
+            if (SimpleGreenhouses.isBlockBlacklisted(state.getBlock())) {
+                List<ItemStack> items = state.getDrops(getLootParams());
+                for (ItemStack i : items) {
+                    if (state.is(BlockTags.CROPS) || SimpleGreenhouses.isItemCultivable(i)) {
+                        ItemStack result = output.insertCraftResult(i, false);
+                        updateSpeed();
+                        if (!result.isEmpty()) {
+                            blocked = true;
+                            return;
+                        }
                     }
                 }
             }
+            
             nextCrop = (nextCrop + 1) % cultivatedBlocks.size();
             markOutputInventoryChanged();
         }
@@ -236,6 +240,9 @@ public class GhControllerBlockEntity extends BlockEntity {
                     if (SimpleGreenhouses.isItemCultivable(d)) {
                         is_crop = true;
                     }
+                }
+                if (above.is(BlockTags.CROPS)) {
+                    is_crop = true;
                 }
             }
 
