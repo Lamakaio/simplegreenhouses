@@ -254,6 +254,7 @@ public class GhGlassBlock extends Block implements EntityBlock {
                 }
             }
         }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

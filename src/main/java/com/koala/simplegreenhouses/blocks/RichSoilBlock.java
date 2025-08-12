@@ -85,6 +85,7 @@ public class RichSoilBlock extends Block implements EntityBlock {
                 }
             }
         }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
 }
