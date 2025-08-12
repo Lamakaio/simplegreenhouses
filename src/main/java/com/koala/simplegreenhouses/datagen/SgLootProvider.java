@@ -52,7 +52,6 @@ public class SgLootProvider {
             this.dropSelf(BlocksRegistrar.RICH_SOIL_BLOCK.get());
             this.dropSelf(BlocksRegistrar.GH_CONTROLLER_BLOCK.get());
             this.dropSelf(BlocksRegistrar.GH_GLASS_BLOCK.get());
-            this.add(BlocksRegistrar.GH_GLASS_BLOCK_DEFAULT.get(), createSingleItemTable(BlocksRegistrar.GH_GLASS_BLOCK.get()));
         }
     }
 }

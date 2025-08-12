@@ -1,7 +1,5 @@
 package com.koala.simplegreenhouses.client;
 
-import com.koala.simplegreenhouses.blocks.BlocksRegistrar;
-import com.koala.simplegreenhouses.blocks.entities.GhGlassBER;
 import com.koala.simplegreenhouses.interfaces.InterfaceRegistrar;
 
 import net.neoforged.bus.api.IEventBus;
@@ -22,9 +20,5 @@ public class ClientProxy
 	}
 
 	public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-		event.registerBlockEntityRenderer(
-				BlocksRegistrar.GH_GLASS_BLOCK_ENTITY.get(),
-				GhGlassBER::new
-		);
 	}
 }

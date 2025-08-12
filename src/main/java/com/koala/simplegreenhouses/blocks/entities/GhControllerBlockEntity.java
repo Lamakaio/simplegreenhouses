@@ -66,7 +66,7 @@ public class GhControllerBlockEntity extends BlockEntity {
     public IItemHandler outputSimulatorCache = null;
 
     public int progress = 0;
-    public int maxProgress = 1000; // TODO add in config or smth
+    public int maxProgress = 1000; 
     public boolean blocked = false;
     public boolean hasWater = false;
     public boolean hasFertilizer = false;
@@ -96,18 +96,18 @@ public class GhControllerBlockEntity extends BlockEntity {
             progress -= maxProgress;
             BlockPos cropPos = cultivatedBlocks.get(nextCrop);
             BlockState state = level.getBlockState(cropPos);
-            if (SimpleGreenhouses.isBlockBlacklisted(state.getBlock())) {
+            if (!SimpleGreenhouses.isBlockBlacklisted(state.getBlock())) {
                 List<ItemStack> items = state.getDrops(getLootParams());
                 for (ItemStack i : items) {
                     if (state.is(BlockTags.CROPS) || SimpleGreenhouses.isItemCultivable(i)) {
                         ItemStack result = output.insertCraftResult(i, false);
-                        updateSpeed();
                         if (!result.isEmpty()) {
                             blocked = true;
                             return;
                         }
                     }
                 }
+                updateSpeed();
             }
             
             nextCrop = (nextCrop + 1) % cultivatedBlocks.size();
@@ -319,8 +319,8 @@ public class GhControllerBlockEntity extends BlockEntity {
                 }
             }
         }
-        hasWater = assembled = true;
-
+        assembled = true;
+        updateSpeed();
         return "";
     }
 }

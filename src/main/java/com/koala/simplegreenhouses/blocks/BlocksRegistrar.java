@@ -76,16 +76,6 @@ public class BlocksRegistrar {
                     .isViewBlocking(BlocksRegistrar::never)
                     .isSuffocating(BlocksRegistrar::never)));
 
-    public static final DeferredBlock<Block> GH_GLASS_BLOCK_DEFAULT = BLOCKS.registerSimpleBlock(
-            "greenhouse_glass_default",
-            BlockBehaviour.Properties.of()
-                    .destroyTime(0.5f)
-                    .explosionResistance(1.0f)
-                    .sound(SoundType.GLASS)
-                    .noOcclusion().isValidSpawn(Blocks::never)
-                    .isViewBlocking(BlocksRegistrar::never)
-                    .isSuffocating(BlocksRegistrar::never));
-
     public static final DeferredItem<BlockItem> GH_GLASS_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(
             "greenhouse_glass",
             GH_GLASS_BLOCK);

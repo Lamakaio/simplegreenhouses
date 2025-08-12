@@ -88,6 +88,8 @@ public class SimpleGreenhouses {
         for (String b : Config.BLOCK_BLACKLIST.get()) {
             blockBlacklist.add(BuiltInRegistries.BLOCK.get(ResourceLocation.parse(b)));
         }
+
+        
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
