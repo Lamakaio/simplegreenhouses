@@ -1,5 +1,6 @@
 package com.koala.simplegreenhouses.blocks;
 
+import com.koala.simplegreenhouses.SimpleGreenhouses;
 import com.koala.simplegreenhouses.blocks.entities.GhControllerBlockEntity;
 import com.koala.simplegreenhouses.blocks.entities.GhGlassBlockEntity;
 import com.koala.simplegreenhouses.interfaces.GreenhouseMenu;
@@ -7,9 +8,11 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -95,8 +98,10 @@ public class GhGlassBlock extends Block implements EntityBlock {
         public String toString() {
             return this.name;
         }
-
         public static GhGlassModel from(ResourceKey<Block> key) {
+            return from(key.location());
+        }
+        public static GhGlassModel from(ResourceLocation key) {
             switch (key.toString()) {
                 case "simplegreenhouses:greenhouse_glass":
                     return GhGlassModel.DEFAULT;
@@ -166,11 +171,11 @@ public class GhGlassBlock extends Block implements EntityBlock {
                     return GhGlassModel.RASTER_LEADED;
                 case "chipped:vertical_leaded_glass":
                     return GhGlassModel.VERTICAL_LEADED;
-                case "connectedglass:borderless":
+                case "connectedglass:borderless_glass":
                     return GhGlassModel.BORDERLESS;
-                case "connectedglass:clear":
+                case "connectedglass:clear_glass":
                     return GhGlassModel.CLEAR;
-                case "connectedglass:scratched":
+                case "connectedglass:scratched_glass":
                     return GhGlassModel.SCRATCHED;
                 default:
                     return null;
@@ -210,9 +215,10 @@ public class GhGlassBlock extends Block implements EntityBlock {
             Player player, InteractionHand hand, BlockHitResult hitResult) {
 
         ItemStack i = player.getMainHandItem();
-        if (i.is(Tags.Items.GLASS_BLOCKS)) {
+        if (i.is(Tags.Items.GLASS_BLOCKS) || i.is(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("chipped", "glass")))) {
             if (i.getItem() instanceof BlockItem bi) {
-                ResourceKey<Block> key = bi.getBlock().defaultBlockState().getBlockHolder().getKey();
+                ResourceLocation key = BlocksRegistrar.BLOCKS.getRegistry().get().getKey(bi.getBlock());
+                SimpleGreenhouses.LOGGER.info("{}", key);
                 GhGlassModel model = key == null ? null : GhGlassModel.from(key);
 
                 if (model != null) level.setBlock(pos, state.setValue(GLASS_MODEL, model), UPDATE_CLIENTS);

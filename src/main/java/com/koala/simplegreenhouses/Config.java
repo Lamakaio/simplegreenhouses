@@ -22,15 +22,23 @@ public class Config {
         public static final ModConfigSpec.DoubleValue FERTILIZER_BONUS = BUILDER
                         .comment("Multiplier to the speed of the machine if fertilizer is supplied")
                         .defineInRange("fertilizerBonus", 3., 1., 100.);
-        
+
         public static final ModConfigSpec.DoubleValue WATER_USAGE_MULTIPLIER = BUILDER
                         .comment("Multiplier to the amount of water used to grow crops")
                         .defineInRange("waterUsageMultiplier", 1., 0.1, 10.);
 
+        public static final ModConfigSpec.IntValue TREE_PENALTY = BUILDER
+                        .comment("Penalty to the drops of items in trees")
+                        .defineInRange("treePenalty", 3, 1, 10);
+
+        public static final ModConfigSpec.IntValue MAX_TREE_SIZE = BUILDER
+                        .comment("Maximum size of a cultivated tree (horizontally). Higher values may lead to merged trees.")
+                        .defineInRange("maxTreeSize", 5, 2, 20);
+
         public static final ModConfigSpec.IntValue GREENHOUSE_WIDTH = BUILDER
                         .comment("Maximum distance from the controller the greenhouse can extend to")
                         .defineInRange("greenhouseWidth", 10, 2, 100);
-        
+
         public static final ModConfigSpec.IntValue GREENHOUSE_HEIGHT = BUILDER
                         .comment("Maximum height from the controller the greenhouse can extend to")
                         .defineInRange("greenhouseHeight", 10, 2, 100);
@@ -39,7 +47,8 @@ public class Config {
                         .comment("A list of *item tags* to allow in the greenhouse (only items with the tag with loot from crops)")
                         .defineListAllowEmpty("tagsWhitelist",
                                         List.of("c:crops", "c:seeds", "c:foods/fruit", "c:foods/vegetable",
-                                                        "c:foods/berry", "minecraft:flowers"),
+                                                        "c:foods/berry", "c:mushrooms", "minecraft:flowers",
+                                                        "minecraft:saplings", "minecraft:logs"),
                                         () -> "", Config::validateItemTagName);
 
         public static final ModConfigSpec.ConfigValue<List<? extends String>> BLOCK_BLACKLIST = BUILDER

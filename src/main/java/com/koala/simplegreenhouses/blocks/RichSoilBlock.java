@@ -1,5 +1,7 @@
 package com.koala.simplegreenhouses.blocks;
 
+import java.util.function.BiConsumer;
+
 import com.koala.simplegreenhouses.SimpleGreenhouses;
 import com.koala.simplegreenhouses.blocks.entities.GhControllerBlockEntity;
 import com.koala.simplegreenhouses.blocks.entities.RichSoilBlockEntity;
@@ -9,15 +11,18 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.common.util.TriState;
 
@@ -86,6 +91,13 @@ public class RichSoilBlock extends Block implements EntityBlock {
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    //override tree grow method to avoid being replaced by dirt
+    @Override
+    public boolean onTreeGrow(BlockState state, LevelReader level, BiConsumer<BlockPos, BlockState> placeFunction,
+            RandomSource randomSource, BlockPos pos, TreeConfiguration config) {
+        return true;
     }
 
 }

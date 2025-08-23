@@ -1,8 +1,6 @@
 {
   "parent": "block/cube_all",
   "textures": {
-    "all": "simplegreenhouses:block/greenhouse_glass",
-    "particle": "simplegreenhouses:block/greenhouse_glass"
-  },
-  "render_type": "translucent"
+    "all": "simplegreenhouses:block/greenhouse_glass"
+  }
 }

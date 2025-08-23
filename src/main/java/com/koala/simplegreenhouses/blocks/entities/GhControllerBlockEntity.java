@@ -1,13 +1,16 @@
 package com.koala.simplegreenhouses.blocks.entities;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.koala.simplegreenhouses.Config;
 import com.koala.simplegreenhouses.SimpleGreenhouses;
@@ -26,7 +29,16 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.ChorusFlowerBlock;
+import net.minecraft.world.level.block.ChorusPlantBlock;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.SaplingBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
@@ -36,7 +48,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class GhControllerBlockEntity extends BlockEntity {
 
@@ -49,24 +62,26 @@ public class GhControllerBlockEntity extends BlockEntity {
     public static final String NEXT_CROP = "next_crop";
     public static final String SPEED = "speed";
     public static final String CULTIVATED = "cultivated";
+    public static final String TREE_BLOCKS = "tree_blocks";
+    public static final String TREE_LOOT = "tree_loot";
     public static final BlockEntityTicker<GhControllerBlockEntity> SERVER_TICKER = (level, pos, state, core) -> core
             .serverTick();
 
-    public static final Codec<List<BlockPos>> CULTIVATED_BLOCKPOS_CODEC = BlockPos.CODEC.listOf();
+    public static final Codec<List<BlockPos>> BLOCKPOS_CODEC = BlockPos.CODEC.listOf();
+    public static final Codec<List<List<ItemStack>>> LOOT_CODEC = ItemStack.CODEC.listOf().listOf();
 
     public GhSyncData dataSlot = new GhSyncData(this);
 
     public List<BlockPos> cultivatedBlocks = new ArrayList<>();
+    public List<List<ItemStack>> cultivatedTreeLoot = new ArrayList<>();
+    public List<BlockPos> treeBlocks = new ArrayList<>();
     public boolean assembled = false;
     public String asm_result = "";
-    /**
-     * cached copy of output slots and inflight recipe results, tossed on relevant
-     * updates
-     */
-    public IItemHandler outputSimulatorCache = null;
+
+    private Map<BlockPos, List<ItemStack>> cropsCache = new HashMap<BlockPos, List<ItemStack>>();
 
     public int progress = 0;
-    public int maxProgress = 1000; 
+    public int maxProgress = 1000;
     public boolean blocked = false;
     public boolean hasWater = false;
     public boolean hasFertilizer = false;
@@ -95,29 +110,129 @@ public class GhControllerBlockEntity extends BlockEntity {
         while (progress >= maxProgress) {
             progress -= maxProgress;
             BlockPos cropPos = cultivatedBlocks.get(nextCrop);
-            BlockState state = level.getBlockState(cropPos);
-            if (!SimpleGreenhouses.isBlockBlacklisted(state.getBlock())) {
-                List<ItemStack> items = state.getDrops(getLootParams());
-                for (ItemStack i : items) {
-                    if (state.is(BlockTags.CROPS) || SimpleGreenhouses.isItemCultivable(i)) {
-                        ItemStack result = output.insertCraftResult(i, false);
-                        if (!result.isEmpty()) {
-                            blocked = true;
-                            return;
+            // if the crop is not cached, get the loot
+            if (!cropsCache.containsKey(cropPos)) {
+                BlockState state = level.getBlockState(cropPos);
+                if (!SimpleGreenhouses.isBlockBlacklisted(state.getBlock())) {
+                    if (level instanceof ServerLevel sl) {
+                        // grow stuff
+                        if (state.getBlock() instanceof CropBlock cb
+                                && cb.isValidBonemealTarget(level, cropPos, state)) {
+                            cb.performBonemeal(sl, RandomSource.create(), cropPos, state);
+                        } else if (state.getBlock() instanceof SaplingBlock sb
+                                && sb.isValidBonemealTarget(level, cropPos, state)) {
+                            sb.performBonemeal(sl, RandomSource.create(), cropPos, state);
+                        } else if (state.is(BlockTags.BEE_GROWABLES) && state.getBlock() instanceof BonemealableBlock sb
+                                && sb.isValidBonemealTarget(level, cropPos, state)) {
+                            sb.performBonemeal(sl, RandomSource.create(), cropPos, state);
+                        } else if (state.getBlock() instanceof ChorusFlowerBlock) {
+                            if (level.getBlockState(cropPos.above()).isAir()) {
+                                level.setBlock(cropPos,
+                                        Blocks.CHORUS_PLANT.defaultBlockState().setValue(ChorusPlantBlock.DOWN, true),
+                                        Block.UPDATE_ALL);
+                                level.setBlock(cropPos.above(), Blocks.CHORUS_FLOWER.defaultBlockState(),
+                                        Block.UPDATE_ALL);
+                                cropsCache.put(cropPos, ImmutableList.<ItemStack>of(new ItemStack(Items.CHORUS_FRUIT)));
+                            }
+                        }
+                        // get trees
+                        else if (state.is(BlockTags.LOGS)) {
+                            discoverTree(cropPos);
+                        } else {
+                            List<ItemStack> items = state
+                                    .getDrops(getLootParams().withParameter(LootContextParams.BLOCK_STATE, state));
+                            items.removeIf(i -> !(state.is(BlockTags.CROPS) || SimpleGreenhouses.isItemCultivable(i)));
+                            cropsCache.put(cropPos, items);
+
                         }
                     }
                 }
-                updateSpeed();
             }
-            
+            List<ItemStack> drops = cropsCache.get(cropPos);
+            if (drops != null) {
+                for (ItemStack i : drops) {
+                    ItemStack result = output.insertCraftResult(i.copy(), false);
+                    if (!result.isEmpty()) {
+                        blocked = true;
+                        return;
+                    }
+                    markOutputInventoryChanged();
+                }
+            }
+            updateSpeed();
             nextCrop = (nextCrop + 1) % cultivatedBlocks.size();
-            markOutputInventoryChanged();
+        }
+    }
+
+    private void discoverTree(BlockPos origin) {
+        Stack<BlockPos> to_explore = new Stack<>();
+        Set<BlockPos> explored = new HashSet<>(treeBlocks);
+        ItemStackHandler drops = new ItemStackHandler(10);
+        to_explore.push(origin);
+        while (!to_explore.isEmpty()) {
+            BlockPos current = to_explore.pop();
+            BlockState state = level.getBlockState(current);
+            if (state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES)) {
+                treeBlocks.add(current);
+                List<ItemStack> current_drops = state
+                        .getDrops(getLootParams().withParameter(LootContextParams.BLOCK_STATE, state));
+                for (ItemStack i : current_drops) {
+                    ItemHandlerHelper.insertItemStacked(drops, i, false);
+                }
+
+                Iterable<BlockPos> around_iter = () -> new AbstractIterator<BlockPos>() {
+                    private int origin_x = current.getX();
+                    private int origin_y = current.getY();
+                    private int origin_z = current.getZ();
+                    private int x = -1;
+                    private int y = -1;
+                    private int z = -1;
+
+                    protected BlockPos computeNext() {
+                        x += 1;
+                        if (x > 1) {
+                            x = -1;
+                            y += 1;
+                            if (y > 1) {
+                                y = -1;
+                                z += 1;
+                                if (z > 1)
+                                    return this.endOfData();
+                            }
+                        }
+                        return new BlockPos(new Vec3i(origin_x + x, origin_y + y, origin_z + z));
+                    }
+                };
+
+                for (BlockPos around : around_iter) {
+                    int maxSize = Config.MAX_TREE_SIZE.get();
+                    if (!explored.contains(around) && Math.abs(around.getX() - origin.getX()) <= maxSize
+                            && Math.abs(around.getY() - origin.getY()) <= maxSize) {
+                        explored.add(around);
+                        to_explore.push(around);
+                    }
+                }
+            }
+        }
+        ImmutableList.Builder<ItemStack> drops_builder = ImmutableList.<ItemStack>builder();
+        for (int i = 0; i < 10; i++) {
+            ItemStack s = drops.getStackInSlot(i);
+            if (!s.isEmpty()) {
+                int newCount = Math.ceilDiv(s.getCount(), Config.TREE_PENALTY.get());
+                s.setCount(newCount);
+                drops_builder.add(s);
+            }
         }
 
+        ImmutableList<ItemStack> drops_list = drops_builder.build();
+
+        cropsCache.put(origin, drops_list);
+        cultivatedTreeLoot.set(nextCrop, drops_list);
     }
 
     protected void updateSpeed() {
-        hasWater = !fluidHandler.drain((int) (waterPerCrop * Config.WATER_USAGE_MULTIPLIER.get()), FluidAction.EXECUTE).isEmpty();
+        hasWater = !fluidHandler.drain((int) (waterPerCrop * Config.WATER_USAGE_MULTIPLIER.get()), FluidAction.EXECUTE)
+                .isEmpty();
         hasFertilizer = !input.extractItem(0, 1, false).isEmpty();
 
         speed = cultivatedBlocks.size();
@@ -161,8 +276,23 @@ public class GhControllerBlockEntity extends BlockEntity {
         this.blocked = compound.getBoolean(BLOCKED);
         fluidHandler.readFromNBT(registries, compound);
 
-        this.cultivatedBlocks = Lists.newArrayList(CULTIVATED_BLOCKPOS_CODEC
+        this.cultivatedBlocks = Lists.newArrayList(BLOCKPOS_CODEC
                 .parse(NbtOps.INSTANCE, compound.get(CULTIVATED)).result().orElse(List.of()));
+        this.treeBlocks = Lists.newArrayList(BLOCKPOS_CODEC
+                .parse(NbtOps.INSTANCE, compound.get(TREE_BLOCKS)).result().orElse(List.of()));
+        this.cultivatedTreeLoot = Lists.newArrayList(LOOT_CODEC
+                .parse(NbtOps.INSTANCE, compound.get(TREE_LOOT)).result().orElse(List.of()));
+
+        if (this.cultivatedBlocks.size() > 0) {
+            this.nextCrop = this.nextCrop % this.cultivatedBlocks.size();
+        }
+
+        for (int i = 0; i < cultivatedBlocks.size(); i++) {
+            List<ItemStack> loot = cultivatedTreeLoot.get(i);
+            if (!loot.isEmpty()) {
+                cropsCache.put(cultivatedBlocks.get(i), loot);
+            }
+        }
     }
 
     @Override
@@ -178,8 +308,14 @@ public class GhControllerBlockEntity extends BlockEntity {
 
         fluidHandler.writeToNBT(registries, compound);
 
-        CULTIVATED_BLOCKPOS_CODEC.encodeStart(NbtOps.INSTANCE, this.cultivatedBlocks).ifSuccess(tag -> {
+        BLOCKPOS_CODEC.encodeStart(NbtOps.INSTANCE, this.cultivatedBlocks).ifSuccess(tag -> {
             compound.put(CULTIVATED, tag);
+        });
+        BLOCKPOS_CODEC.encodeStart(NbtOps.INSTANCE, this.treeBlocks).ifSuccess(tag -> {
+            compound.put(TREE_BLOCKS, tag);
+        });
+        LOOT_CODEC.encodeStart(NbtOps.INSTANCE, this.cultivatedTreeLoot).ifSuccess(tag -> {
+            compound.put(TREE_LOOT, tag);
         });
     }
 
@@ -213,6 +349,7 @@ public class GhControllerBlockEntity extends BlockEntity {
         }
 
         cultivatedBlocks.clear();
+        cultivatedTreeLoot.clear();
         Set<BlockPos> glass_blocks = new HashSet<BlockPos>();
         for (BlockPos soil : discovered) {
 
@@ -241,13 +378,14 @@ public class GhControllerBlockEntity extends BlockEntity {
                         is_crop = true;
                     }
                 }
-                if (above.is(BlockTags.CROPS)) {
+                if (above.is(BlockTags.BEE_GROWABLES) || above.is(BlockTags.CROPS) || above.getBlock() instanceof ChorusFlowerBlock) {
                     is_crop = true;
                 }
             }
 
             if (is_crop) {
                 cultivatedBlocks.add(above_pos);
+                cultivatedTreeLoot.add(new ArrayList<>());
             }
 
             // try to find some glass above
@@ -320,6 +458,8 @@ public class GhControllerBlockEntity extends BlockEntity {
             }
         }
         assembled = true;
+        nextCrop = 0;
+        cropsCache.clear();
         updateSpeed();
         return "";
     }

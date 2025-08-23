@@ -22,9 +22,11 @@ However, the mod is under MIT license (except for the borrowed assets, which are
 - Convenient to access and use : after activating the multiblock by right clicking on the controller, any rich soil or greenhouse glass can be used to access the inventory. The also provide fluid and item capabilities (that means pipes, hopper and the like can access the greenhouse through them).
 - Hopefully performance-friendly. Large performance or memory costs will be considered bugs and I will fix them to the best of my ability.
 
+- Auto-grow : auto apply fertilizer on each crop, so they are fully grown before being "harvested".
+
+- Trees : Include trees. Sapling will be grown by the greenhouse, and the expected loot of the tree (minus a penalty) will be produced.
+
 ## Planned features
-- Auto-grow : auto apply fertilizer on each crop, so they are fully grown immediatly. Currently, the greenhouse produces the current loot table from whatever is planted.
-- Trees : somehow include trees. The current plan is to require saplings on greenhouse activation, and try to grow them into trees with auto-grow, then take note of all different blocks on the tree and make them produce. 
 - Energy : optionally uses forge energy to function. 
 - Whatever reasonable idea ppl suggest. 
 - Additional compatibility with some mods (I'm thinking of Botania). I would need someone to tell me exactly what it needed though. 

@@ -12,6 +12,8 @@ import com.koala.simplegreenhouses.datagen.SgLootProvider;
 import com.koala.simplegreenhouses.interfaces.InterfaceRegistrar;
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -25,6 +27,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
@@ -51,10 +54,12 @@ public class SimpleGreenhouses {
     // is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and
     // pass them in automatically.
+    
     public SimpleGreenhouses(IEventBus modEventBus, ModContainer modContainer) {
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::clientSetup);
         
 
         // Register ourselves for server and other game events we are interested in.
@@ -88,9 +93,14 @@ public class SimpleGreenhouses {
         for (String b : Config.BLOCK_BLACKLIST.get()) {
             blockBlacklist.add(BuiltInRegistries.BLOCK.get(ResourceLocation.parse(b)));
         }
-
-        
     }
+    @SuppressWarnings("deprecation")
+    private void clientSetup(FMLClientSetupEvent event) {
+        // Load config item and item tags
+        ItemBlockRenderTypes.setRenderLayer(BlocksRegistrar.GH_GLASS_BLOCK.get(), RenderType.translucent());
+    }
+
+
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent

@@ -34,8 +34,8 @@
         "model=ornate_leaded_glass": {"model": "chipped:block/ornate_leaded_glass"},
         "model=raster_leaded_glass": {"model": "chipped:block/raster_leaded_glass"},
         "model=vertical_leaded_glass": {"model": "chipped:block/vertical_leaded_glass"},
-        "model=borderless": {"model": "connectedglass:borderless"},
-        "model=clear": {"model": "connectedglass:clear"},
-        "model=scratched": {"model": "connectedglass:scratched"}
+        "model=borderless": {"model": "connectedglass:borderless_glass"},
+        "model=clear": {"model": "connectedglass:clear_glass"},
+        "model=scratched": {"model": "connectedglass:scratched_glass"}
   }
 }

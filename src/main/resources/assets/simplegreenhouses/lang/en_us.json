@@ -12,6 +12,8 @@
   "simplegreenhouses.configuration.greenhouseHeight": "Maximum greenhouse height",
   "simplegreenhouses.configuration.tagsWhitelist": "Tags whitelist",
   "simplegreenhouses.configuration.blockBlacklist": "Blocks blacklist",
+  "simplegreenhouses.configuration.maxTreeSize": "Maximum tree size",
+  "simplegreenhouses.configuration.treePenalty": "Tree penalty",
 
   "block.simplegreenhouses.rich_soil": "Rich Soil", 
   "item.simplegreenhouses.rich_soil": "Rich Soil",

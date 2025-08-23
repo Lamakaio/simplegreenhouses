@@ -1,5 +1,5 @@
 {
-  "parent": "simplegreenhouses:block/greenhouse_glass_default",
+  "parent": "simplegreenhouses:block/greenhouse_glass",
   "display": {
     "thirdperson": {
       "rotation": [

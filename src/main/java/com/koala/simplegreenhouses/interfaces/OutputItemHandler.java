@@ -8,7 +8,6 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class OutputItemHandler extends ItemStackHandler
 {
-	public static final String EXPERIENCE = "xp";
 	
 	public final GhControllerBlockEntity te;
 	public boolean forcingInserts = false;
@@ -16,7 +15,7 @@ public class OutputItemHandler extends ItemStackHandler
 	
 	public OutputItemHandler(GhControllerBlockEntity te)
 	{
-		super(18);
+		super(12);
 		this.te = te;
 	}
 
