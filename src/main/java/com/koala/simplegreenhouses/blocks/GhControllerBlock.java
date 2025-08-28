@@ -44,43 +44,45 @@ public class GhControllerBlock extends Block implements EntityBlock {
         return new GhControllerBlockEntity(pos, state);
     }
 
-
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hitResult) {
 
-        
         IFluidHandlerItem cap = stack.getCapability(Capabilities.FluidHandler.ITEM);
         BlockEntity be = level.getBlockEntity(pos);
         if (cap != null && be instanceof GhControllerBlockEntity ghbe) {
             if (player instanceof ServerPlayer) {
-            if (FluidUtil.interactWithFluidHandler(player, hand, ghbe.fluidHandler)) {
-                return ItemInteractionResult.CONSUME;
-            }}
-            else {
-                return ItemInteractionResult.SUCCESS; 
+                if (FluidUtil.interactWithFluidHandler(player, hand, ghbe.fluidHandler)) {
+                    return ItemInteractionResult.CONSUME;
+                }
+            } else {
+                return ItemInteractionResult.SUCCESS;
             }
         }
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
+
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
             BlockHitResult hit) {
         BlockEntity be = level.getBlockEntity(pos);
-        if (player instanceof ServerPlayer serverPlayer) {
-            if (be instanceof GhControllerBlockEntity ghbe) {
-                if (!ghbe.assembled) {
-                    ghbe.asm_result = ghbe.tryAssembleMultiblock();
-                }
-                if (ghbe.assembled) {
+
+        if (be instanceof GhControllerBlockEntity ghbe) {
+            if (!ghbe.assembled) {
+                ghbe.asm_result = ghbe.tryAssembleMultiblock();
+            }
+            if (ghbe.assembled) {
+                if (player instanceof ServerPlayer serverPlayer) {
                     serverPlayer.openMenu(GreenhouseMenu.getServerMenuProvider(ghbe, pos));
-                    return InteractionResult.sidedSuccess(level.isClientSide());
-                } else {
-                    ((ServerPlayer) player).sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.system(
+                }
+                return InteractionResult.sidedSuccess(level.isClientSide());
+            } else {
+                if (player instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.system(
                             String.format("[Simple Greenhouses] Error assembling multiblock : %s", ghbe.asm_result))),
                             false, ChatType.bind(ChatType.MSG_COMMAND_INCOMING, player.createCommandSourceStack()));
-                    return InteractionResult.FAIL;
                 }
+                return InteractionResult.FAIL;
             }
         }
 

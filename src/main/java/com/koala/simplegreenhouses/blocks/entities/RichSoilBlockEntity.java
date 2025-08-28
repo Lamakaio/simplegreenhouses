@@ -22,7 +22,8 @@ public class RichSoilBlockEntity extends BlockEntity {
     @Override
     public void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
         super.loadAdditional(compound, registries);
-        this.controllerPos = BlockPos.CODEC.parse(NbtOps.INSTANCE, compound.get(CONTROLLER_POS)).result().orElse(BlockPos.ZERO);
+        this.controllerPos = BlockPos.CODEC.parse(NbtOps.INSTANCE, compound.get(CONTROLLER_POS)).result()
+                .orElse(BlockPos.ZERO);
     }
 
     @Override
@@ -31,6 +32,6 @@ public class RichSoilBlockEntity extends BlockEntity {
 
         BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, this.controllerPos).ifSuccess(tag -> {
             compound.put(CONTROLLER_POS, tag);
-        }); 
+        });
     }
 }

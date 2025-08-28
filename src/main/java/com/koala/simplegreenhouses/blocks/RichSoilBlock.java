@@ -64,18 +64,19 @@ public class RichSoilBlock extends Block implements EntityBlock {
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
             BlockHitResult hit) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (!SimpleGreenhouses.isItemCultivable(player.getMainHandItem()) && player instanceof ServerPlayer serverPlayer
-                && be instanceof RichSoilBlockEntity rsbe) {
-            if (level.getBlockEntity(rsbe.controllerPos) instanceof GhControllerBlockEntity ghbe) {
-                if (ghbe.assembled) {
+        if (level.getBlockEntity(pos) instanceof RichSoilBlockEntity rsbe
+                && level.getBlockEntity(rsbe.controllerPos) instanceof GhControllerBlockEntity ghbe && ghbe.assembled) {
+            if (SimpleGreenhouses.isItemCultivable(player.getMainHandItem())
+                    && hit.getDirection() == Direction.UP) {
+                ghbe.refreshCrop(pos.above());
+            } else {
+                if (player instanceof ServerPlayer serverPlayer) {
                     serverPlayer.openMenu(GreenhouseMenu.getServerMenuProvider(ghbe, pos));
-                    return InteractionResult.SUCCESS;
                 }
+                return InteractionResult.sidedSuccess(level.isClientSide());
             }
         }
-
-        return super.useWithoutItem(state, level, pos, player, hit);
+        return InteractionResult.PASS;
     }
 
     // disassemble multiblock on destroy
@@ -93,10 +94,17 @@ public class RichSoilBlock extends Block implements EntityBlock {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    //override tree grow method to avoid being replaced by dirt
+    // override tree grow method to avoid being replaced by dirt
     @Override
     public boolean onTreeGrow(BlockState state, LevelReader level, BiConsumer<BlockPos, BlockState> placeFunction,
             RandomSource randomSource, BlockPos pos, TreeConfiguration config) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof RichSoilBlockEntity rsbe
+                && level.getBlockEntity(rsbe.controllerPos) instanceof GhControllerBlockEntity ghbe) {
+            if (ghbe.assembled) {
+                ghbe.queueTree(pos.above());
+            }
+        }
         return true;
     }
 

@@ -63,6 +63,7 @@ public class GhControllerBlockEntity extends BlockEntity {
     public static final String SPEED = "speed";
     public static final String CULTIVATED = "cultivated";
     public static final String TREE_BLOCKS = "tree_blocks";
+    public static final String QUEUED_TREES = "queued_trees";
     public static final String TREE_LOOT = "tree_loot";
     public static final BlockEntityTicker<GhControllerBlockEntity> SERVER_TICKER = (level, pos, state, core) -> core
             .serverTick();
@@ -75,6 +76,7 @@ public class GhControllerBlockEntity extends BlockEntity {
     public List<BlockPos> cultivatedBlocks = new ArrayList<>();
     public List<List<ItemStack>> cultivatedTreeLoot = new ArrayList<>();
     public List<BlockPos> treeBlocks = new ArrayList<>();
+    public List<BlockPos> queuedTrees = new ArrayList<>();
     public boolean assembled = false;
     public String asm_result = "";
 
@@ -136,8 +138,8 @@ public class GhControllerBlockEntity extends BlockEntity {
                             }
                         }
                         // get trees
-                        else if (state.is(BlockTags.LOGS)) {
-                            discoverTree(cropPos);
+                        else if (state.is(BlockTags.LOGS) && queuedTrees.remove(cropPos)) {
+                            discoverTree(cropPos, nextCrop);
                         } else {
                             List<ItemStack> items = state
                                     .getDrops(getLootParams().withParameter(LootContextParams.BLOCK_STATE, state));
@@ -164,7 +166,7 @@ public class GhControllerBlockEntity extends BlockEntity {
         }
     }
 
-    private void discoverTree(BlockPos origin) {
+    public void discoverTree(BlockPos origin, int index) {
         Stack<BlockPos> to_explore = new Stack<>();
         Set<BlockPos> explored = new HashSet<>(treeBlocks);
         ItemStackHandler drops = new ItemStackHandler(10);
@@ -227,7 +229,7 @@ public class GhControllerBlockEntity extends BlockEntity {
         ImmutableList<ItemStack> drops_list = drops_builder.build();
 
         cropsCache.put(origin, drops_list);
-        cultivatedTreeLoot.set(nextCrop, drops_list);
+        cultivatedTreeLoot.set(index, drops_list);
     }
 
     protected void updateSpeed() {
@@ -280,6 +282,8 @@ public class GhControllerBlockEntity extends BlockEntity {
                 .parse(NbtOps.INSTANCE, compound.get(CULTIVATED)).result().orElse(List.of()));
         this.treeBlocks = Lists.newArrayList(BLOCKPOS_CODEC
                 .parse(NbtOps.INSTANCE, compound.get(TREE_BLOCKS)).result().orElse(List.of()));
+        this.queuedTrees = Lists.newArrayList(BLOCKPOS_CODEC
+                .parse(NbtOps.INSTANCE, compound.get(QUEUED_TREES)).result().orElse(List.of()));
         this.cultivatedTreeLoot = Lists.newArrayList(LOOT_CODEC
                 .parse(NbtOps.INSTANCE, compound.get(TREE_LOOT)).result().orElse(List.of()));
 
@@ -313,6 +317,9 @@ public class GhControllerBlockEntity extends BlockEntity {
         });
         BLOCKPOS_CODEC.encodeStart(NbtOps.INSTANCE, this.treeBlocks).ifSuccess(tag -> {
             compound.put(TREE_BLOCKS, tag);
+        });
+        BLOCKPOS_CODEC.encodeStart(NbtOps.INSTANCE, this.queuedTrees).ifSuccess(tag -> {
+            compound.put(QUEUED_TREES, tag);
         });
         LOOT_CODEC.encodeStart(NbtOps.INSTANCE, this.cultivatedTreeLoot).ifSuccess(tag -> {
             compound.put(TREE_LOOT, tag);
@@ -350,6 +357,8 @@ public class GhControllerBlockEntity extends BlockEntity {
 
         cultivatedBlocks.clear();
         cultivatedTreeLoot.clear();
+        treeBlocks.clear();
+        queuedTrees.clear();
         Set<BlockPos> glass_blocks = new HashSet<BlockPos>();
         for (BlockPos soil : discovered) {
 
@@ -363,27 +372,12 @@ public class GhControllerBlockEntity extends BlockEntity {
                         Config.GREENHOUSE_WIDTH.get());
             }
 
-            if (be instanceof RichSoilBlockEntity rsbe) {
-                rsbe.controllerPos = worldPosition;
-            }
-
             // discover the eventual crop
             BlockPos above_pos = soil.above();
             BlockState above = level.getBlockState(above_pos);
-            boolean is_crop = false;
 
-            if (!SimpleGreenhouses.isBlockBlacklisted(above.getBlock())) {
-                for (ItemStack d : above.getDrops(getLootParams())) {
-                    if (SimpleGreenhouses.isItemCultivable(d)) {
-                        is_crop = true;
-                    }
-                }
-                if (above.is(BlockTags.BEE_GROWABLES) || above.is(BlockTags.CROPS) || above.getBlock() instanceof ChorusFlowerBlock) {
-                    is_crop = true;
-                }
-            }
-
-            if (is_crop) {
+            if (be instanceof RichSoilBlockEntity rsbe) {
+                rsbe.controllerPos = worldPosition;
                 cultivatedBlocks.add(above_pos);
                 cultivatedTreeLoot.add(new ArrayList<>());
             }
@@ -463,4 +457,13 @@ public class GhControllerBlockEntity extends BlockEntity {
         updateSpeed();
         return "";
     }
+
+    public void refreshCrop(BlockPos pos) {
+        cropsCache.remove(pos);
+    }
+
+    public void queueTree(BlockPos pos) {
+        queuedTrees.add(pos);
+    }
+
 }

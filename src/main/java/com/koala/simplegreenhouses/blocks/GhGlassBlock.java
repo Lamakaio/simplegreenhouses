@@ -235,13 +235,14 @@ public class GhGlassBlock extends Block implements EntityBlock {
             BlockHitResult hit) {
 
         BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof GhGlassBlockEntity glassbe && player instanceof ServerPlayer serverPlayer) {
+        if (be instanceof GhGlassBlockEntity glassbe) {
             BlockEntity controller_entity = level.getBlockEntity(glassbe.controllerPos);
             if (controller_entity instanceof GhControllerBlockEntity ghbe) {
                 if (ghbe.assembled) {
-                    serverPlayer.openMenu(GreenhouseMenu.getServerMenuProvider(ghbe, pos));
-                    return InteractionResult.SUCCESS;
-
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        serverPlayer.openMenu(GreenhouseMenu.getServerMenuProvider(ghbe, pos));
+                    }
+                    return InteractionResult.sidedSuccess(level.isClientSide());
                 }
             }
         }
