@@ -6,10 +6,11 @@
         "B": {"item": "minecraft:water_bucket"},
         "C": {"item": "minecraft:oxidized_copper"},
         "D": {"item": "minecraft:wind_charge"},
-        "E": {"item": "minecraft:chain"}
+        "E": {"item": "minecraft:chain"},
+        "F": {"item": "minecraft:redstone"}
     },
     "pattern": [
-        "DDD",
+        "DFD",
         "BCB",
         "EAE"
     ],
